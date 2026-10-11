@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaludCitas - Registro de Paciente</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes Poppins y Raleway -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .font-raleway { font-family: 'Raleway', sans-serif; }
+    </style>
+</head>
+<body class="bg-white min-h-screen overflow-x-hidden p-0 m-0">
+
+    <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white">
+        
+        <!-- COLUMNA IZQUIERDA: Formulario de Registro -->
+        <div class="lg:col-span-7 xl:col-span-7 flex flex-col justify-start px-8 lg:px-16 py-8 relative">
+            
+            <!-- Encabezado con título y logo -->
+            <div class="flex items-center gap-4 mb-3">
+                <h1 class="text-3xl lg:text-4xl font-normal text-zinc-800">
+                    Bienvenido a “SaludCitas”
+                </h1>
+                <img class="w-16 h-16 object-contain" 
+                     th:src="@{/images/logo.svg}" 
+                     alt="Logo SaludCitas" />
+            </div>
+
+            <!-- Descripción -->
+            <p class="text-sm lg:text-base font-light text-black text-justify mb-8 max-w-2xl">
+                Regístrate y gestiona tus consultas de forma fácil y rápida. Podrás consultar la disponibilidad de los médicos, revisar tus citas anteriores y reservar y pagar tu próxima consulta desde la plataforma.
+            </p>
+
+            <!-- FORMULARIO DE REGISTRO -->
+            <form th:action="@{/registro}" method="post" class="space-y-4 max-w-2xl">
+                
+                <!-- Fila 1: Nombres y Apellidos en grid de 2 columnas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="nombres" class="text-zinc-600 text-sm font-medium">Nombres</label>
+                        <input type="text" id="nombres" name="nombres" required
+                               placeholder="Ingrese sus nombres"
+                               class="w-full px-4 py-3 bg-gray-100 rounded-xl outline-none border border-transparent focus:border-zinc-400 text-zinc-800 text-sm">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="apellidos" class="text-zinc-600 text-sm font-medium">Apellidos</label>
+                        <input type="text" id="apellidos" name="apellidos" required
+                               placeholder="Ingrese sus apellidos"
+                               class="w-full px-4 py-3 bg-gray-100 rounded-xl outline-none border border-transparent focus:border-zinc-400 text-zinc-800 text-sm">
+                    </div>
+                </div>
+
+                <!-- Fila 2: DNI -->
+                <div class="flex flex-col gap-1.5 md:w-1/2 md:pr-2">
+                    <label for="dni" class="text-zinc-600 text-sm font-medium">DNI</label>
+                    <input type="text" id="dni" name="dni" required maxlength="8"
+                           placeholder="Ingrese su DNI"
+                           class="w-full px-4 py-3 bg-gray-100 rounded-xl outline-none border border-transparent focus:border-zinc-400 text-zinc-800 text-sm">
+                </div>
+
+                <!-- Fila 3: Correo Electrónico (ancho completo) -->
+                <div class="flex flex-col gap-1.5">
+                    <label for="correo" class="text-zinc-600 text-sm font-medium">Correo electrónico</label>
+                    <input type="email" id="correo" name="correo" required
+                           placeholder="Ingrese su Correo electrónico"
+                           class="w-full px-4 py-3 bg-gray-100 rounded-xl outline-none border border-transparent focus:border-zinc-400 text-zinc-800 text-sm">
+                </div>
+
+                <!-- Fila 4: Contraseñas en grid de 2 columnas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="password" class="text-zinc-600 text-sm font-medium">Contraseña</label>
+                        <input type="password" id="password" name="password" required
+                               placeholder="contraseña"
+                               class="w-full px-4 py-3 bg-gray-100 rounded-xl outline-none border border-transparent focus:border-zinc-400 text-zinc-800 text-sm">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="confirmPassword" class="text-zinc-600 text-sm font-medium">Confirmar Contraseña</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                               placeholder="contraseña"
+                               class="w-full px-4 py-3 bg-gray-100 rounded-xl outline-none border border-transparent focus:border-zinc-400 text-zinc-800 text-sm">
+                    </div>
+                </div>
+
+                <!-- Requisitos de la contraseña -->
+                <p class="text-stone-700 text-xs font-medium pt-1">
+                    Mínimo 8 caracteres, una mayúscula y un número
+                </p>
+
+                <!-- Botón de Envío -->
+                <div class="pt-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <button type="submit" 
+                            class="px-12 py-3 bg-[#134700] text-white font-raleway text-lg font-normal rounded-[10px] outline outline-1 outline-offset-[-1px] outline-black hover:bg-opacity-90 transition text-center">
+                        Crear cuenta
+                    </button>
+                    <div class="text-xs font-raleway text-zinc-600">
+                        ¿Ya tienes cuenta? 
+                        <a th:href="@{/login}" class="text-[#1D48DF] font-bold underline ml-1">Inicia sesión</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- COLUMNA DERECHA: Imagen lateral decorativa -->
+        <div class="hidden lg:flex lg:col-span-5 xl:col-span-5 flex-col justify-between h-full min-h-screen bg-[#ECFDFB] relative overflow-hidden">
+            <!-- Franja decorativa superior idéntica a login -->
+            <div class="w-full h-24 bg-[#D7F5F0] flex-shrink-0"></div>
+            
+            <!-- Imagen del doctor / banner -->
+            <div class="w-full h-full relative flex items-end justify-center">
+                <img class="max-w-full max-h-[75vh] object-contain object-bottom" 
+                     th:src="@{/images/registro.png}" 
+                     alt="SaludCitas Registro" />
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

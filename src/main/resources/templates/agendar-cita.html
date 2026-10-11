@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaludCitas - Buscar Disponibilidad</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F4F6F6] min-h-screen flex overflow-hidden">
+
+    <!-- ================= SIDEBAR IZQUIERDO ================= -->
+    <aside class="w-64 bg-[#DCEEEA] flex flex-col justify-between h-screen border-r border-[#CFE3DF] flex-shrink-0">
+        <div>
+            <div class="pt-8 pb-10 flex flex-col items-center gap-2">
+                <h1 class="text-3xl font-medium text-zinc-800 tracking-tight">SaludCitas</h1>
+                <img class="w-14 h-14 object-contain mt-1" th:src="@{/images/logo.svg}" alt="Logo" />
+            </div>
+
+            <nav class="space-y-2 px-3">
+                <a th:href="@{/inicio}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-semibold">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span>Inicio</span>
+                </a>
+
+                <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#A2D9CE] text-zinc-800 font-semibold text-base shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Agendar Cita</span>
+                </a>
+
+                <a th:href="@{/citas/mis-citas}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-semibold">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <span>Mis Citas</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-[#0F766E]/20">
+            <a th:href="@{/login}" class="flex items-center gap-3 px-3 py-2 text-zinc-800 hover:text-red-700 transition font-semibold text-base">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ================= CONTENIDO PRINCIPAL ================= -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto px-10 py-6">
+        
+        <h2 class="text-3xl font-bold text-black mb-6">Buscar Disponibilidad</h2>
+
+        <!-- Barra de Progreso de Pasos -->
+        <div class="grid grid-cols-4 gap-4 mb-6 max-w-4xl">
+            <div class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium text-black">1 · Buscar</span>
+                <div class="h-2 w-full bg-[#3B8272] rounded-full"></div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium text-zinc-400">2 · Confirmar</span>
+                <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium text-zinc-400">3 · Pagar</span>
+                <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium text-zinc-400">4 · Comprobante</span>
+                <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Tarjeta Blanca Principal -->
+        <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-4xl flex-1 flex flex-col justify-between">
+            
+            <div class="space-y-6">
+                <!-- Encabezado de la tarjeta -->
+                <div>
+                    <h3 class="text-xl font-semibold text-black">Buscar Disponibilidad</h3>
+                    <p class="text-zinc-500 text-sm mt-1">Filtra por especialidad para ver los turnos publicados y disponibles.</p>
+                </div>
+
+                <!-- Aviso si intentó enviar sin seleccionar turno -->
+                <div th:if="${param.error != null and param.error[0] == 'seleccione_turno'}" 
+                     class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm">
+                    ⚠️ Por favor selecciona uno de los horarios libres (en verde) antes de continuar.
+                </div>
+
+                <!-- 1. FORMULARIO AISLADO DE FILTROS (GET) -->
+                <form th:action="@{/citas/agendar}" method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-zinc-600 text-sm font-medium">Especialidad</label>
+                        <select name="especialidadId" onchange="this.form.submit()"
+                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                            <option value="">Todas las especialidades</option>
+                            <option th:each="esp : ${especialidades}" 
+                                    th:value="${esp.id}" 
+                                    th:text="${esp.nombre}"
+                                    th:selected="${esp.id == especialidadSeleccionada}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-zinc-600 text-sm font-medium">Desde</label>
+                        <input type="date" name="fechaDesde" th:value="${fechaDesde}" onchange="this.form.submit()"
+                               class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-zinc-600 text-sm font-medium">Hasta</label>
+                        <input type="date" name="fechaHasta" th:value="${fechaHasta}" onchange="this.form.submit()"
+                               class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                    </div>
+                </form>
+
+                <!-- Leyenda de colores -->
+                <div class="flex items-center gap-6 pt-1 text-sm font-normal text-zinc-500">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-[#529E7F]"></span>
+                        <span>Libre</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-[#F4A79D]"></span>
+                        <span>Ocupado</span>
+                    </div>
+                </div>
+
+                <!-- 2. FORMULARIO SEPARADO DE RESERVA (POST) -->
+                <form th:action="@{/citas/confirmar}" method="post" id="formReserva">
+                    
+                    <!-- Médicos y turnos -->
+                    <div class="space-y-4">
+                        <div th:if="${turnosPorMedico.empty}" class="text-zinc-500 text-sm py-4">
+                            No se encontraron turnos en las fechas o especialidad seleccionada.
+                        </div>
+
+                        <div th:each="entry : ${turnosPorMedico}" class="bg-[#F8F9FA] rounded-2xl p-4 border border-zinc-100">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-normal text-black text-base" 
+                                      th:text="${entry.key.nombres + ' ' + entry.key.apellidos}"></span>
+                                <span class="text-zinc-500 text-xs" 
+                                      th:text="${entry.key.especialidad.nombre}"></span>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-3">
+                                <div th:each="turno : ${entry.value}">
+                                    <!-- Libre (Radio button interactivo) -->
+                                    <label th:if="${turno.estado == 'DISPONIBLE'}" class="cursor-pointer">
+                                        <input type="radio" name="turnoId" th:value="${turno.id}" class="peer sr-only">
+                                        <span class="px-6 py-2 rounded-2xl text-sm font-medium bg-[#529E7F] text-white inline-block peer-checked:ring-4 peer-checked:ring-[#2C6E53] hover:opacity-90 transition"
+                                              th:text="${#temporals.format(turno.horaInicio, 'HH:mm')}">
+                                        </span>
+                                    </label>
+
+                                    <!-- Ocupado -->
+                                    <button th:if="${turno.estado == 'OCUPADO'}" type="button" disabled 
+                                            class="px-6 py-2 rounded-2xl text-sm font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90"
+                                            th:text="${#temporals.format(turno.horaInicio, 'HH:mm')}">
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer de botones de acción -->
+                    <div class="flex items-center justify-between pt-8">
+                        <button type="submit" 
+                                class="px-8 py-3 bg-[#2D735C] text-white font-medium text-base rounded-xl hover:bg-[#235b49] transition shadow-sm">
+                            Continuar con la reserva
+                        </button>
+                        
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

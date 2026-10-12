@@ -1,14 +1,18 @@
 package com.clinica.clinicaapp.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "citas")
-@Getter @Setter
+@Getter
+@Setter
 public class Cita {
+
+    @Column(unique = true, length = 40)
+    private String codigo;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,8 +22,8 @@ public class Cita {
     @JoinColumn(name = "paciente_id", nullable = false)
     private Paciente paciente;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "turno_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "turno_id", nullable = false)
     private Turno turno;
 
     @Column(nullable = false)

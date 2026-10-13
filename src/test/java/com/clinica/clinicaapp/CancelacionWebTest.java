@@ -18,11 +18,13 @@ import org.springframework.test.web.servlet.MockMvc;
       "spring.datasource.username=sa",
       "spring.datasource.password=",
       "spring.sql.init.mode=never",
+      "clinica.pago.simulado=true",
       "spring.jpa.hibernate.ddl-auto=create-drop"
     })
 @AutoConfigureMockMvc
 class CancelacionWebTest {
   @Autowired MockMvc mvc;
+  @Autowired com.clinica.clinicaapp.service.CitaService emision;
   @Autowired jakarta.persistence.EntityManager em;
 
   @Test
@@ -51,13 +53,25 @@ class CancelacionWebTest {
     turno.setDuracionMinutos(30);
     turno.setEstado("OCUPADO");
     em.persist(turno);
-    var cita = new com.clinica.clinicaapp.entity.Cita();
-    cita.setPaciente(p);
-    cita.setTurno(turno);
-    cita.setEstado("EMITIDA");
-    cita.setCodigo("CIT-WEB");
-    em.persist(cita);
+    turno.setEstado("DISPONIBLE");
     em.flush();
+    var cita = emision.iniciarProcesoEmision(turno.getId(), p);
+    cita = emision.confirmarPagoYEmision(cita.getId(), "4242424242424242", "PRUEBA");
+    org.junit.jupiter.api.Assertions.assertEquals("CONFIRMADA", cita.getEstado());
+    org.junit.jupiter.api.Assertions.assertEquals("OCUPADO", turno.getEstado());
+    var nuevoTurno = new com.clinica.clinicaapp.entity.Turno();
+    nuevoTurno.setMedico(doctor);
+    nuevoTurno.setFecha(turno.getFecha().plusDays(1));
+    nuevoTurno.setHoraInicio(java.time.LocalTime.of(14, 0));
+    nuevoTurno.setHoraFin(java.time.LocalTime.of(14, 30));
+    nuevoTurno.setDuracionMinutos(30);
+    nuevoTurno.setEstado("DISPONIBLE");
+    em.persist(nuevoTurno);
+    em.flush();
+    cita = emision.reprogramarCita(cita.getId(), nuevoTurno.getId(), p);
+    org.junit.jupiter.api.Assertions.assertEquals("REPROGRAMADA", cita.getEstado());
+    org.junit.jupiter.api.Assertions.assertEquals("DISPONIBLE", turno.getEstado());
+    org.junit.jupiter.api.Assertions.assertEquals("OCUPADO", nuevoTurno.getEstado());
     MockHttpSession session = new MockHttpSession();
     session.setAttribute("usuarioLogueado", p);
     String html =
@@ -93,7 +107,7 @@ class CancelacionWebTest {
     MockHttpSession medico = new MockHttpSession();
     medico.setAttribute("medicoLogueado", doctor);
     mvc.perform(
-            get("/medico/agenda/datos").param("fecha", turno.getFecha().toString()).session(medico))
+            get("/medico/agenda/datos").param("fecha", nuevoTurno.getFecha().toString()).session(medico))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.contador").value(0))
         .andExpect(jsonPath("$.avisos[0].texto").value("Cupo liberado por cancelación"));

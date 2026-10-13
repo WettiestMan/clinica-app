@@ -20,6 +20,8 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     Optional<Cita> findByCodigo(String codigo);
 
+    Optional<Cita> findByCodigoCitaIgnoreCase(String codigo);
+
     Optional<Cita> findByCodigoIgnoreCase(String codigo);
 
     @Query("""

@@ -27,9 +27,10 @@
             <div id="cronometro" class="text-xl font-bold text-amber-800 tracking-wider">15:00</div>
         </div>
 
-        <h3 class="text-2xl font-bold text-black mb-1">Pasarela de Pagos</h3>
+        <h3 class="text-2xl font-bold text-black mb-1">Pago de prueba</h3>
         <p class="text-zinc-500 text-sm mb-6">Monto a pagar: <strong class="text-black" th:text="${'S/ ' + cita.monto}"></strong></p>
 
+        <p class="text-amber-800 text-sm mb-4">Demostración académica: no se realizan cobros. Usa datos ficticios. Requiere activar clinica.pago.simulado.</p>
         <form th:action="@{/citas/procesar-pago}" method="post" class="space-y-4">
             <input type="hidden" name="citaId" th:value="${cita.id}">
             <input type="hidden" name="metodoPago" value="TARJETA_CREDITO_DEBITO">

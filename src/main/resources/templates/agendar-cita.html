@@ -13,8 +13,7 @@
         body { font-family: 'Poppins', sans-serif; }
     </style>
 </head>
-<body class="bg-[#F4F6F6] min-h-screen flex overflow-hidden">
-
+<body class="bg-[#F4F6F6] h-screen overflow-hidden flex">
     <!-- ================= SIDEBAR IZQUIERDO ================= -->
     <aside class="w-64 bg-[#DCEEEA] flex flex-col justify-between h-screen border-r border-[#CFE3DF] flex-shrink-0">
         <div>
@@ -24,7 +23,7 @@
             </div>
 
             <nav class="space-y-2 px-3">
-                <a th:href="@{/inicio}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-semibold">
+                <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-semibold">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
@@ -48,7 +47,7 @@
         </div>
 
         <div class="p-4 border-t border-[#0F766E]/20">
-            <a th:href="@{/login}" class="flex items-center gap-3 px-3 py-2 text-zinc-800 hover:text-red-700 transition font-semibold text-base">
+            <a th:href="@{/logout}" class="flex items-center gap-3 px-3 py-2 text-zinc-800 hover:text-red-700 transition font-semibold text-base">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
@@ -57,35 +56,35 @@
         </div>
     </aside>
 
-    <!-- ================= CONTENIDO PRINCIPAL ================= -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto px-10 py-6">
+    <!-- ================= CONTENIDO PRINCIPAL CON SCROLL ================= -->
+    <main class="flex-1 h-screen overflow-y-auto px-10 py-6">
         
-        <h2 class="text-3xl font-bold text-black mb-6">Buscar Disponibilidad</h2>
+        <div class="max-w-4xl mx-auto pb-16">
+            <h2 class="text-3xl font-bold text-black mb-6">Buscar Disponibilidad</h2>
 
-        <!-- Barra de Progreso de Pasos -->
-        <div class="grid grid-cols-4 gap-4 mb-6 max-w-4xl">
-            <div class="flex flex-col gap-1.5">
-                <span class="text-sm font-medium text-black">1 · Buscar</span>
-                <div class="h-2 w-full bg-[#3B8272] rounded-full"></div>
+            <!-- Barra de Progreso de Pasos -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-sm font-medium text-black">1 · Buscar</span>
+                    <div class="h-2 w-full bg-[#3B8272] rounded-full"></div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-sm font-medium text-zinc-400">2 · Confirmar</span>
+                    <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-sm font-medium text-zinc-400">3 · Pagar</span>
+                    <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-sm font-medium text-zinc-400">4 · Comprobante</span>
+                    <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
+                </div>
             </div>
-            <div class="flex flex-col gap-1.5">
-                <span class="text-sm font-medium text-zinc-400">2 · Confirmar</span>
-                <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
-            </div>
-            <div class="flex flex-col gap-1.5">
-                <span class="text-sm font-medium text-zinc-400">3 · Pagar</span>
-                <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
-            </div>
-            <div class="flex flex-col gap-1.5">
-                <span class="text-sm font-medium text-zinc-400">4 · Comprobante</span>
-                <div class="h-2 w-full bg-[#E5E7EB] rounded-full"></div>
-            </div>
-        </div>
 
-        <!-- Tarjeta Blanca Principal -->
-        <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-4xl flex-1 flex flex-col justify-between">
-            
-            <div class="space-y-6">
+            <!-- Tarjeta Blanca Principal -->
+            <div class="bg-white rounded-[32px] p-8 shadow-sm space-y-6">
+                
                 <!-- Encabezado de la tarjeta -->
                 <div>
                     <h3 class="text-xl font-semibold text-black">Buscar Disponibilidad</h3>
@@ -98,7 +97,7 @@
                     ⚠️ Por favor selecciona uno de los horarios libres (en verde) antes de continuar.
                 </div>
 
-                <!-- 1. FORMULARIO AISLADO DE FILTROS (GET) -->
+                <!-- 1. FORMULARIO DE FILTROS (GET) -->
                 <form th:action="@{/citas/agendar}" method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <div class="flex flex-col gap-1.5">
                         <label class="text-zinc-600 text-sm font-medium">Especialidad</label>
@@ -155,38 +154,43 @@
                                       th:text="${entry.key.especialidad.nombre}"></span>
                             </div>
                             
-                            <div class="flex flex-wrap gap-3">
-                                <div th:each="turno : ${entry.value}">
-                                    <!-- Libre (Radio button interactivo) -->
-                                    <label th:if="${turno.estado == 'DISPONIBLE'}" class="cursor-pointer">
-                                        <input type="radio" name="turnoId" th:value="${turno.id}" class="peer sr-only">
-                                        <span class="px-6 py-2 rounded-2xl text-sm font-medium bg-[#529E7F] text-white inline-block peer-checked:ring-4 peer-checked:ring-[#2C6E53] hover:opacity-90 transition"
-                                              th:text="${#temporals.format(turno.horaInicio, 'HH:mm')}">
-                                        </span>
-                                    </label>
+                            <div class="flex flex-wrap gap-3 items-center">
+    <th:block th:each="turno : ${entry.value}">
+        
+        <!-- Libre (Verde) -->
+        <label th:if="${turno.estado == 'DISPONIBLE'}" class="cursor-pointer inline-flex">
+            <input type="radio" 
+                   name="turnoId" 
+                   th:value="${turno.id}" 
+                   class="peer hidden" 
+                   required>
+            <span class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#529E7F] text-white inline-flex items-center justify-center select-none peer-checked:ring-4 peer-checked:ring-[#2C6E53] peer-checked:bg-[#2C6E53] hover:opacity-90 transition shadow-sm">
+                <span th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
+            </span>
+        </label>
 
-                                    <!-- Ocupado -->
-                                    <button th:if="${turno.estado == 'OCUPADO'}" type="button" disabled 
-                                            class="px-6 py-2 rounded-2xl text-sm font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90"
-                                            th:text="${#temporals.format(turno.horaInicio, 'HH:mm')}">
-                                    </button>
-                                </div>
-                            </div>
+        <!-- Ocupado (Rosado / Rojo deshabilitado) -->
+        <span th:if="${turno.estado == 'OCUPADO' or turno.estado == 'EN_PROCESO'}" 
+              class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90 inline-flex items-center justify-center select-none shadow-sm"
+              title="Horario ocupado">
+            <span th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
+        </span>
+
+    </th:block>
+</div>
                         </div>
                     </div>
 
-                    <!-- Footer de botones de acción -->
-                    <div class="flex items-center justify-between pt-8">
+                    <!-- Botón de acción -->
+                    <div class="pt-8">
                         <button type="submit" 
                                 class="px-8 py-3 bg-[#2D735C] text-white font-medium text-base rounded-xl hover:bg-[#235b49] transition shadow-sm">
                             Continuar con la reserva
                         </button>
-                        
                     </div>
                 </form>
 
             </div>
-
         </div>
 
     </main>

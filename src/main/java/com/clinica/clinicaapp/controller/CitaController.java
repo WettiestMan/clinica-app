@@ -27,17 +27,20 @@ public class CitaController {
     private final TurnoRepository turnoRepository;
     private final CitaRepository citaRepository;
     private final CitaService citaService;
+    private final CancelacionController cancelacionController;
 
     public CitaController(
             EspecialidadRepository especialidadRepository,
             TurnoRepository turnoRepository,
             CitaRepository citaRepository,
-            CitaService citaService) {
+            CitaService citaService,
+            CancelacionController cancelacionController) {
 
         this.especialidadRepository = especialidadRepository;
         this.turnoRepository = turnoRepository;
         this.citaRepository = citaRepository;
         this.citaService = citaService;
+        this.cancelacionController = cancelacionController;
     }
 
     @GetMapping("/agendar")
@@ -187,7 +190,8 @@ public class CitaController {
             return "redirect:/citas/mis-citas";
         }
 
-        if (!"CONFIRMADA".equals(cita.getEstado())) {
+        if (!"CONFIRMADA".equalsIgnoreCase(cita.getEstado())
+                && !"REPROGRAMADA".equalsIgnoreCase(cita.getEstado())) {
             return "redirect:/citas/mis-citas";
         }
 
@@ -221,6 +225,9 @@ public class CitaController {
         model.addAttribute("tabActiva", tab);
         model.addAttribute("citas", citas);
         model.addAttribute("paciente", paciente);
+
+        model.addAttribute(
+                "csrf", cancelacionController.csrf(session));
 
         return "mis-citas";
     }

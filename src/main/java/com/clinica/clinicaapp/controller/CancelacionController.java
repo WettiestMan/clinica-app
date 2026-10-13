@@ -32,7 +32,7 @@ public class CancelacionController {
     return p.getId();
   }
 
-  private String csrf(HttpSession s) {
+  public String csrf(HttpSession s) {
     synchronized (s) {
       String t = (String) s.getAttribute("sp03Csrf");
       if (t == null) {

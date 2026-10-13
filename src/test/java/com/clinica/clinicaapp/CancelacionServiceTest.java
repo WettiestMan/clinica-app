@@ -91,6 +91,31 @@ class CancelacionServiceTest {
   }
 
   @Test
+  void confirmadaConPagoCancelable() {
+    pagar();
+    cita.setEstado("CONFIRMADA");
+    assertNotNull(service.confirmar(cita.getId(), paciente.getId(), "Error al agendar", "", false));
+  }
+
+  @Test
+  void sinPagoNoCancelaNiLibera() {
+    cita.setEstado("CONFIRMADA");
+    assertThrows(ResponseStatusException.class,
+        () -> service.confirmar(cita.getId(), paciente.getId(), "Error al agendar", "", false));
+    assertEquals("CONFIRMADA", cita.getEstado());
+    assertEquals("OCUPADO", turno.getEstado());
+    assertEquals(0, bajas.count());
+    assertEquals(0, eventos.count());
+  }
+
+  @Test
+  void buscaCodigoVisibleYDeEmision() {
+    cita.setCodigoCita("CIT-2026-ABCDEF");
+    assertEquals(cita.getId(), service.buscar(cita.getCodigoVisible(), paciente.getId()).getId());
+    assertEquals(cita.getId(), service.buscar("cit-2026-abcdef", paciente.getId()).getId());
+  }
+
+  @Test
   void dentroPlazoConPago() {
     pagar();
     Cancelacion b =
@@ -105,6 +130,7 @@ class CancelacionServiceTest {
 
   @Test
   void fueraPlazoRequiereReconfirmacion() {
+    pagar();
     turno.setFecha(LocalDate.of(2026, 10, 11));
     turno.setHoraInicio(LocalTime.of(18, 0));
     assertThrows(
@@ -146,6 +172,7 @@ class CancelacionServiceTest {
 
   @Test
   void motivoObligatorio() {
+    pagar();
     assertThrows(
         ResponseStatusException.class,
         () -> service.confirmar(cita.getId(), paciente.getId(), "", "", false));
@@ -153,6 +180,7 @@ class CancelacionServiceTest {
 
   @Test
   void otroRequiereDetalle() {
+    pagar();
     assertThrows(
         ResponseStatusException.class,
         () -> service.confirmar(cita.getId(), paciente.getId(), "Otro", "", false));
@@ -160,23 +188,26 @@ class CancelacionServiceTest {
 
   @Test
   void reprogramadaCancelable() {
+    pagar();
     cita.setEstado("REPROGRAMADA");
     assertNotNull(service.confirmar(cita.getId(), paciente.getId(), "Error al agendar", "", false));
   }
 
   @Test
   void confirmacionIdempotente() {
+    pagar();
     Cancelacion b =
         service.confirmar(cita.getId(), paciente.getId(), "Error al agendar", "", false);
     assertEquals(
         b.getId(),
         service.confirmar(cita.getId(), paciente.getId(), "Error al agendar", "", false).getId());
     assertEquals(1, bajas.count());
-    assertEquals(2, eventos.count());
+    assertEquals(3, eventos.count());
   }
 
   @Test
   void historialPermiteNuevaReserva() {
+    pagar();
     service.confirmar(cita.getId(), paciente.getId(), "Error al agendar", "", false);
     Cita nueva = new Cita();
     nueva.setPaciente(paciente);
@@ -208,6 +239,7 @@ class CancelacionServiceTest {
 
   @Test
   void limiteExacto24HorasIncluido() {
+    pagar();
     assertTrue(service.evaluar(cita.getId(), paciente.getId()).dentroPlazo());
     turno.setHoraInicio(LocalTime.of(11, 59, 59));
     assertFalse(service.evaluar(cita.getId(), paciente.getId()).dentroPlazo());

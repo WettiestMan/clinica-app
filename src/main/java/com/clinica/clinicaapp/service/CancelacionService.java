@@ -49,15 +49,27 @@ public class CancelacionService {
   }
 
   private void vigente(Cita c) {
-    if (!Set.of("EMITIDA", "REPROGRAMADA").contains(c.getEstado().toUpperCase(Locale.ROOT))
+    if (!Set.of("CONFIRMADA", "EMITIDA", "REPROGRAMADA").contains(c.getEstado().toUpperCase(Locale.ROOT))
         || !politica.futura(c.getTurno().getFecha(), c.getTurno().getHoraInicio()))
       throw invalida();
   }
 
   @Transactional(readOnly = true)
   public Cita buscar(String codigo, Long usuario) {
-    if (codigo == null || codigo.isBlank() || codigo.length() > 40) throw invalida();
-    Cita c = citas.findByCodigo(codigo.trim()).orElseThrow(this::invalida);
+    if (codigo == null || codigo.isBlank()) throw invalida();
+    String valor = codigo.trim();
+    if (valor.length() > 40) throw invalida();
+    Optional<Cita> encontrada = Optional.empty();
+    if (valor.toUpperCase(Locale.ROOT).matches("CIT-[0-9]+")) {
+      try {
+        encontrada = citas.findById(Long.parseLong(valor.substring(4)));
+      } catch (NumberFormatException ex) {
+        throw invalida();
+      }
+    }
+    if (encontrada.isEmpty()) encontrada = citas.findByCodigoIgnoreCase(valor);
+    if (encontrada.isEmpty()) encontrada = citas.findByCodigoCitaIgnoreCase(valor);
+    Cita c = encontrada.orElseThrow(this::invalida);
     propietario(c, usuario);
     vigente(c);
     return c;
@@ -74,6 +86,10 @@ public class CancelacionService {
   private Evaluacion evaluar(Cita c) {
     boolean dentro = politica.dentroPlazo(c.getTurno().getFecha(), c.getTurno().getHoraInicio());
     Optional<ComprobantePago> pago = pagos.findByCitaIdAndEstado(c.getId(), "APROBADO");
+    if (pago.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Esta cita no tiene un pago aprobado registrado y no puede cancelarse.");
+    }
     return new Evaluacion(
         c,
         dentro,

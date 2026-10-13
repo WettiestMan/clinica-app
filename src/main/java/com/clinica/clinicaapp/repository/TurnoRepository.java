@@ -19,14 +19,13 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
     Optional<Turno> bloquear(@Param("id") Long id);
 
     @Query("""
-        SELECT t FROM Turno t
-        JOIN FETCH t.medico m
-        JOIN FETCH m.especialidad e
-        WHERE (:especialidadId IS NULL OR e.id = :especialidadId)
-          AND t.fecha BETWEEN :desde AND :hasta
-          AND t.estado = 'DISPONIBLE'
-        ORDER BY t.fecha ASC, m.apellidos ASC, t.horaInicio ASC
-        """)
+    SELECT t FROM Turno t
+    JOIN FETCH t.medico m
+    JOIN FETCH m.especialidad e
+    WHERE (:especialidadId IS NULL OR e.id = :especialidadId)
+      AND t.fecha BETWEEN :desde AND :hasta
+    ORDER BY t.fecha ASC, m.apellidos ASC, t.horaInicio ASC
+    """)
     List<Turno> buscarTurnosDisponibles(
             @Param("especialidadId") Long especialidadId,
             @Param("desde") LocalDate desde,

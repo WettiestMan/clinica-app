@@ -127,30 +127,30 @@
                             
                             <!-- Badges de Estado -->
                             <td class="py-4 px-4">
-                                <!-- Confirmada -->
-                                <span th:if="${cita.estado == 'CONFIRMADA'}" 
+                                <!-- Confirmada en Próximas: Cliqueable hacia Detalle de Cita -->
+                                <a th:if="${tabActiva == 'proximas' and cita.estado == 'CONFIRMADA'}" 
+                                   th:href="@{'/citas/detalle/' + ${cita.id}}"
+                                   class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646] hover:bg-[#8fd1c4] transition cursor-pointer inline-block">
+                                    confirmada
+                                </a>
+
+                                <!-- Confirmada en otras pestañas -->
+                                <span th:if="${tabActiva != 'proximas' and cita.estado == 'CONFIRMADA'}" 
                                       class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
                                     confirmada
                                 </span>
+
                                 <!-- Atendida -->
                                 <span th:if="${cita.estado == 'ATENDIDA'}" 
                                       class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
                                     Atendida
                                 </span>
+
                                 <!-- Cancelada -->
                                 <span th:if="${cita.estado == 'CANCELADA'}" 
                                       class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#F8B4AC] text-[#84261B]">
                                     Cancelada
                                 </span>
-                            </td>
-
-                            <!-- Columna adicional para Históricas: Ver Comprobante -->
-                            <td th:if="${tabActiva == 'historicas'}" class="py-4 px-4 text-right">
-                                <a th:if="${cita.estado != 'CANCELADA'}" 
-                                   th:href="@{'/citas/comprobante/' + ${cita.id}}" 
-                                   class="text-[#2D735C] underline font-medium text-xs hover:text-[#1E5646]">
-                                    Ver comprobante
-                                </a>
                             </td>
                         </tr>
                     </tbody>

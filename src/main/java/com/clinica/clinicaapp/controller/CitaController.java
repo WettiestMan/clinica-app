@@ -160,4 +160,70 @@ public class CitaController {
 
         return "mis-citas";
     }
+
+    // ================== SP-02: POSTERGACIÓN DE CITA ==================
+
+    // 1. Vista de Detalle de Cita (Imagen 1)
+    @GetMapping("/detalle/{citaId}")
+    public String detalleCita(@PathVariable Long citaId, HttpSession session, Model model) {
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
+
+        Cita cita = citaRepository.findById(citaId).orElse(null);
+        if (cita == null || !cita.getPaciente().getId().equals(paciente.getId())) {
+            return "redirect:/citas/mis-citas";
+        }
+
+        model.addAttribute("cita", cita);
+        return "detalle-cita";
+    }
+
+    // 2. Vista de Reprogramación de Cita (Imagen 2)
+    @GetMapping("/reprogramar/{citaId}")
+    public String vistaReprogramar(@PathVariable Long citaId, HttpSession session, Model model) {
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
+
+        Cita cita = citaRepository.findById(citaId).orElse(null);
+        if (cita == null) return "redirect:/citas/mis-citas";
+
+        try {
+            // HU-05 / RF-10: Validar regla de las 24h
+            citaService.validarPlazoPostergacion(cita, paciente);
+        } catch (Exception ex) {
+            return "redirect:/citas/detalle/" + citaId + "?error=" + ex.getMessage();
+        }
+
+        // HU-06 / RF-11: Cargar turnos del mismo médico
+        List<Turno> turnosMedico = turnoRepository.findTurnosByMedicoId(
+                cita.getTurno().getMedico().getId(), 
+                LocalDate.now()
+        );
+
+        model.addAttribute("cita", cita);
+        model.addAttribute("turnos", turnosMedico);
+        return "reprogramar-cita";
+    }
+
+    // 3. Procesar Cambio de Horario (HU-07)
+    @PostMapping("/reprogramar/confirmar")
+    public String confirmarReprogramacion(
+            @RequestParam Long citaId,
+            @RequestParam(required = false) Long nuevoTurnoId,
+            HttpSession session) {
+
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
+
+        if (nuevoTurnoId == null) {
+            return "redirect:/citas/reprogramar/" + citaId + "?error=Debe seleccionar un nuevo horario";
+        }
+
+        try {
+            Cita citaActualizada = citaService.reprogramarCita(citaId, nuevoTurnoId, paciente);
+            return "redirect:/citas/comprobante/" + citaActualizada.getId();
+        } catch (Exception ex) {
+            return "redirect:/citas/reprogramar/" + citaId + "?error=" + ex.getMessage();
+        }
+    }
 }

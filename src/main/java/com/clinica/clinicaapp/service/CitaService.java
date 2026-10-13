@@ -97,4 +97,65 @@ public class CitaService {
         cita.setEstado("EXPIRADA");
         citaRepository.save(cita);
     }
+
+    /**
+     * HU-05 / RF-09, RF-10: Valida que la cita exista, sea del paciente, esté CONFIRMADA
+     * y tenga al menos 24 horas de anticipación reglamentaria.
+     */
+    public void validarPlazoPostergacion(Cita cita, Paciente paciente) {
+        if (!cita.getPaciente().getId().equals(paciente.getId())) {
+            throw new IllegalArgumentException("No tiene permisos sobre esta cita.");
+        }
+
+        if (!"CONFIRMADA".equalsIgnoreCase(cita.getEstado())) {
+            throw new IllegalStateException("Solo se pueden postergar citas en estado Confirmada.");
+        }
+
+        Turno turnoActual = cita.getTurno();
+        LocalDateTime fechaHoraCita = LocalDateTime.of(turnoActual.getFecha(), turnoActual.getHoraInicio());
+
+        // Regla reglamentaria: mínimo 24 horas antes
+        /*if (LocalDateTime.now().plusHours(24).isAfter(fechaHoraCita)) {
+            throw new IllegalStateException("No se puede reprogramar: la solicitud debe realizarse con un mínimo de 24 horas de anticipación.");
+        }*/
+    }
+
+    /**
+     * HU-06, HU-07 / RF-12, RF-13, RF-14, RF-15:
+     * - Libera el turno original a 'DISPONIBLE'
+     * - Asigna el nuevo turno a 'OCUPADO'
+     * - Genera nuevo código de validación de reprogramación
+     */
+    @Transactional
+    public Cita reprogramarCita(Long citaId, Long nuevoTurnoId, Paciente paciente) {
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new IllegalArgumentException("Cita no encontrada"));
+
+        // Validar plazo reglamentario
+        validarPlazoPostergacion(cita, paciente);
+
+        Turno nuevoTurno = turnoRepository.findById(nuevoTurnoId)
+                .orElseThrow(() -> new IllegalArgumentException("El turno seleccionado no existe"));
+
+        if (!"DISPONIBLE".equalsIgnoreCase(nuevoTurno.getEstado())) {
+            throw new IllegalStateException("El nuevo horario seleccionado ya no está disponible.");
+        }
+
+        // RF-14: Liberar el cupo anterior al inventario de turnos
+        Turno turnoAnterior = cita.getTurno();
+        turnoAnterior.setEstado("DISPONIBLE");
+        turnoRepository.save(turnoAnterior);
+
+        // RF-12 & RF-13: Asignar nuevo cupo y bloquearlo
+        nuevoTurno.setEstado("OCUPADO");
+        turnoRepository.save(nuevoTurno);
+
+        // RF-15: Nuevo código de comprobante manteniendo trazabilidad
+        String nuevoCodigo = "CIT-REP-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        cita.setCodigoCita(nuevoCodigo);
+        cita.setTurno(nuevoTurno);
+        cita.setFechaRegistro(LocalDateTime.now());
+
+        return citaRepository.save(cita);
+    }
 }

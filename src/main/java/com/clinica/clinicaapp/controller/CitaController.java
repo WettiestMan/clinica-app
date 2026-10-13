@@ -6,10 +6,10 @@ import com.clinica.clinicaapp.entity.Turno;
 import com.clinica.clinicaapp.repository.CitaRepository;
 import com.clinica.clinicaapp.repository.EspecialidadRepository;
 import com.clinica.clinicaapp.repository.TurnoRepository;
+import com.clinica.clinicaapp.service.CitaService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,16 +26,19 @@ public class CitaController {
     private final EspecialidadRepository especialidadRepository;
     private final TurnoRepository turnoRepository;
     private final CitaRepository citaRepository;
+    private final CitaService citaService;
 
-    public CitaController(EspecialidadRepository especialidadRepository, 
-                          TurnoRepository turnoRepository, 
-                          CitaRepository citaRepository) {
+    public CitaController(EspecialidadRepository especialidadRepository,
+                          TurnoRepository turnoRepository,
+                          CitaRepository citaRepository,
+                          CitaService citaService) {
         this.especialidadRepository = especialidadRepository;
         this.turnoRepository = turnoRepository;
         this.citaRepository = citaRepository;
+        this.citaService = citaService;
     }
 
-    // ESTE ES EL MÉTODO QUE SPRING NO ESTABA ENCONTRANDO (GET /citas/agendar)
+    // PASO 1: Buscar Disponibilidad
     @GetMapping("/agendar")
     public String agendarCita(
             @RequestParam(required = false) Long especialidadId,
@@ -57,13 +60,12 @@ public class CitaController {
         model.addAttribute("fechaDesde", desde);
         model.addAttribute("fechaHasta", hasta);
 
-        return "agendar-cita"; // Retorna src/main/resources/templates/agendar-cita.html
+        return "agendar-cita";
     }
 
-    // MÉTODO PARA PROCESAR LA RESERVA (POST /citas/confirmar)
+    // PASO 2: Confirmar Reserva (Bloquea temporalmente el cupo)
     @PostMapping("/confirmar")
-    @Transactional
-    public String procesarSeleccionTurno(
+    public String confirmarReserva(
             @RequestParam(name = "turnoId", required = false) Long turnoId,
             HttpSession session,
             Model model) {
@@ -77,25 +79,151 @@ public class CitaController {
             return "redirect:/citas/agendar?error=seleccione_turno";
         }
 
-        Turno turno = turnoRepository.findById(turnoId).orElse(null);
-        if (turno == null || !"DISPONIBLE".equals(turno.getEstado())) {
+        try {
+            Cita cita = citaService.iniciarProcesoEmision(turnoId, paciente);
+            model.addAttribute("cita", cita);
+            return "confirmar-reserva";
+        } catch (IllegalStateException e) {
             return "redirect:/citas/agendar?error=ocupado";
         }
+    }
 
-        // Marcar turno como ocupado y apartar cupo
-        turno.setEstado("OCUPADO");
-        turnoRepository.save(turno);
+    // PASO 3: Pantalla de Cobro y Pago con Temporizador
+    @GetMapping("/pago/{citaId}")
+    public String pantallaPago(@PathVariable Long citaId, HttpSession session, Model model) {
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
 
-        // Guardar la cita vinculada al paciente
-        Cita cita = new Cita();
-        cita.setPaciente(paciente);
-        cita.setTurno(turno);
-        cita.setEstado("PENDIENTE_PAGO");
-        citaRepository.save(cita);
+        Cita cita = citaRepository.findById(citaId).orElse(null);
+        if (cita == null || !"EN_PROCESO".equals(cita.getEstado())) {
+            return "redirect:/citas/agendar?error=cita_invalida";
+        }
 
-        model.addAttribute("turno", turno);
         model.addAttribute("cita", cita);
+        return "pago-cita";
+    }
 
-        return "confirmar-reserva";
+    // Procesar Pago Digital (HU-02 -> HU-03)
+    @PostMapping("/procesar-pago")
+    public String procesarPago(
+            @RequestParam Long citaId,
+            @RequestParam String numeroTarjeta,
+            @RequestParam String metodoPago,
+            Model model) {
+
+        try {
+            Cita citaEmitida = citaService.confirmarPagoYEmision(citaId, numeroTarjeta, metodoPago);
+            return "redirect:/citas/comprobante/" + citaEmitida.getId();
+        } catch (IllegalStateException ex) {
+            return "redirect:/citas/agendar?error=tiempo_expirado";
+        }
+    }
+
+    // PASO 4: Comprobante y Constancia Final (HU-03)
+    @GetMapping("/comprobante/{citaId}")
+    public String verComprobante(@PathVariable Long citaId, HttpSession session, Model model) {
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
+
+        Cita cita = citaRepository.findById(citaId).orElse(null);
+        if (cita == null || !"CONFIRMADA".equals(cita.getEstado())) {
+            return "redirect:/citas/agendar";
+        }
+
+        model.addAttribute("cita", cita);
+        return "comprobante-cita";
+    }
+
+    @GetMapping("/mis-citas")
+    public String misCitas(
+            @RequestParam(name = "tab", defaultValue = "proximas") String tab,
+            HttpSession session, 
+            Model model) {
+
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) {
+            return "redirect:/login";
+        }
+
+        List<Cita> citas;
+
+        if ("historicas".equalsIgnoreCase(tab)) {
+            citas = citaRepository.findHistoricas(paciente.getId());
+        } else {
+            tab = "proximas";
+            citas = citaRepository.findProximas(paciente.getId());
+        }
+
+        model.addAttribute("tabActiva", tab);
+        model.addAttribute("citas", citas);
+        model.addAttribute("paciente", paciente);
+
+        return "mis-citas";
+    }
+
+    // ================== SP-02: POSTERGACIÓN DE CITA ==================
+
+    // 1. Vista de Detalle de Cita (Imagen 1)
+    @GetMapping("/detalle/{citaId}")
+    public String detalleCita(@PathVariable Long citaId, HttpSession session, Model model) {
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
+
+        Cita cita = citaRepository.findById(citaId).orElse(null);
+        if (cita == null || !cita.getPaciente().getId().equals(paciente.getId())) {
+            return "redirect:/citas/mis-citas";
+        }
+
+        model.addAttribute("cita", cita);
+        return "detalle-cita";
+    }
+
+    // 2. Vista de Reprogramación de Cita (Imagen 2)
+    @GetMapping("/reprogramar/{citaId}")
+    public String vistaReprogramar(@PathVariable Long citaId, HttpSession session, Model model) {
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
+
+        Cita cita = citaRepository.findById(citaId).orElse(null);
+        if (cita == null) return "redirect:/citas/mis-citas";
+
+        try {
+            // HU-05 / RF-10: Validar regla de las 24h
+            citaService.validarPlazoPostergacion(cita, paciente);
+        } catch (Exception ex) {
+            return "redirect:/citas/detalle/" + citaId + "?error=" + ex.getMessage();
+        }
+
+        // HU-06 / RF-11: Cargar turnos del mismo médico
+        List<Turno> turnosMedico = turnoRepository.findTurnosByMedicoId(
+                cita.getTurno().getMedico().getId(), 
+                LocalDate.now()
+        );
+
+        model.addAttribute("cita", cita);
+        model.addAttribute("turnos", turnosMedico);
+        return "reprogramar-cita";
+    }
+
+    // 3. Procesar Cambio de Horario (HU-07)
+    @PostMapping("/reprogramar/confirmar")
+    public String confirmarReprogramacion(
+            @RequestParam Long citaId,
+            @RequestParam(required = false) Long nuevoTurnoId,
+            HttpSession session) {
+
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) return "redirect:/login";
+
+        if (nuevoTurnoId == null) {
+            return "redirect:/citas/reprogramar/" + citaId + "?error=Debe seleccionar un nuevo horario";
+        }
+
+        try {
+            Cita citaActualizada = citaService.reprogramarCita(citaId, nuevoTurnoId, paciente);
+            return "redirect:/citas/comprobante/" + citaActualizada.getId();
+        } catch (Exception ex) {
+            return "redirect:/citas/reprogramar/" + citaId + "?error=" + ex.getMessage();
+        }
     }
 }

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaludCitas - Mis Citas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F4F6F6] min-h-screen flex overflow-hidden">
+
+    <!-- ================= SIDEBAR IZQUIERDO ================= -->
+    <aside class="w-64 bg-[#DCEEEA] flex flex-col justify-between h-screen border-r border-[#CFE3DF] flex-shrink-0">
+        <div>
+            <!-- Logo -->
+            <div class="pt-8 pb-10 flex flex-col items-center gap-2">
+                <h1 class="text-3xl font-medium text-zinc-800 tracking-tight">SaludCitas</h1>
+                <!-- Ícono del corazón con pulso de tu diseño -->
+                <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center p-2.5 border border-red-100">
+                    <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-red-500 stroke-current" stroke-width="2">
+                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" fill="#EF4444" stroke="#EF4444" fill-opacity="0.1"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 12h2l1-2.5 2 5 1-2.5h2" stroke="#EF4444"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="space-y-2 px-3">
+                <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-normal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span>Inicio</span>
+                </a>
+
+                <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-normal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Agendar Cita</span>
+                </a>
+
+                <!-- Mis Citas (Activo según Figma) -->
+                <a th:href="@{/citas/mis-citas}" class="flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#A2D9CE] text-zinc-800 font-medium text-base shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <span>Mis Citas</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Botón Cerrar Sesión (Conectado a /logout) -->
+        <div class="p-4 border-t border-[#0F766E]/20">
+            <a th:href="@{/logout}" class="flex items-center gap-3 px-3 py-2 text-zinc-800 hover:text-red-700 transition font-normal text-base">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ================= CONTENIDO PRINCIPAL ================= -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto px-12 py-8">
+        
+        <h2 class="text-3xl font-bold text-black mb-8">Mis citas</h2>
+
+        <!-- Tarjeta Blanca Principal -->
+        <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-5xl flex-1 flex flex-col justify-start">
+            
+            <h3 class="text-xl font-semibold text-black">Mis citas</h3>
+            <p class="text-zinc-500 text-sm mt-1 mb-6">Seguimiento de tus citas y solicitudes en espera.</p>
+
+            <!-- Pestañas (Tabs: Próximas | Históricas | En Espera) -->
+            <div class="flex items-center border-b border-zinc-200 gap-8 mb-6 text-sm">
+                <!-- Próximas -->
+                <a th:href="@{/citas/mis-citas(tab='proximas')}"
+                   th:classappend="${tabActiva == 'proximas'} ? 'border-b-2 border-[#2D735C] font-semibold text-black pb-2 -mb-px' : 'text-zinc-500 pb-2 hover:text-black font-normal'">
+                    Próximas
+                </a>
+
+                <!-- Históricas -->
+                <a th:href="@{/citas/mis-citas(tab='historicas')}"
+                   th:classappend="${tabActiva == 'historicas'} ? 'border-b-2 border-[#2D735C] font-semibold text-black pb-2 -mb-px' : 'text-zinc-500 pb-2 hover:text-black font-normal'">
+                    Históricas
+                </a>
+
+                <!-- En Espera (Deshabilitada/Placeholder por ahora) -->
+                <span class="text-zinc-400 pb-2 font-normal cursor-not-allowed">
+                    En Espera
+                </span>
+            </div>
+
+            <!-- TABLA DE CITAS -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-[#2D735C]/30 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
+                            <th class="py-3 px-4">Especialidad</th>
+                            <th class="py-3 px-4">Médico</th>
+                            <th class="py-3 px-4">Fecha</th>
+                            <th class="py-3 px-4">Hora</th>
+                            <th class="py-3 px-4">Estado</th>
+                            <th th:if="${tabActiva == 'historicas'}" class="py-3 px-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 text-sm text-zinc-700">
+                        <!-- Mensaje si no hay citas registradas -->
+                        <tr th:if="${#lists.isEmpty(citas)}">
+                            <td colspan="6" class="text-center py-8 text-zinc-400">
+                                No tienes citas registradas en esta sección.
+                            </td>
+                        </tr>
+
+                        <!-- Iteración de Citas -->
+                        <tr th:each="cita : ${citas}" class="hover:bg-zinc-50 transition">
+                            <td class="py-4 px-4" th:text="${cita.turno.medico.especialidad.nombre}">Cardiologia</td>
+                            <td class="py-4 px-4" th:text="${cita.turno.medico.nombres + ' ' + cita.turno.medico.apellidos}">Dr. Tello</td>
+                            <td class="py-4 px-4" th:text="${#temporals.format(cita.turno.fecha, 'dd MMM yyyy')}">30 ago 2026</td>
+                            <td class="py-4 px-4" th:text="${#temporals.format(cita.turno.horaInicio, 'HH:mm')}">09:00</td>
+                            
+                            <!-- Badges de Estado -->
+                            <td class="py-4 px-4">
+                                <!-- Confirmada en Próximas: Cliqueable hacia Detalle de Cita -->
+                                <a th:if="${tabActiva == 'proximas' and cita.estado == 'CONFIRMADA'}" 
+                                   th:href="@{'/citas/detalle/' + ${cita.id}}"
+                                   class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646] hover:bg-[#8fd1c4] transition cursor-pointer inline-block">
+                                    confirmada
+                                </a>
+
+                                <!-- Confirmada en otras pestañas -->
+                                <span th:if="${tabActiva != 'proximas' and cita.estado == 'CONFIRMADA'}" 
+                                      class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
+                                    confirmada
+                                </span>
+
+                                <!-- Atendida -->
+                                <span th:if="${cita.estado == 'ATENDIDA'}" 
+                                      class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
+                                    Atendida
+                                </span>
+
+                                <!-- Cancelada -->
+                                <span th:if="${cita.estado == 'CANCELADA'}" 
+                                      class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#F8B4AC] text-[#84261B]">
+                                    Cancelada
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mensaje pie de tabla en Próximas -->
+            <p th:if="${tabActiva == 'proximas'}" class="text-zinc-500 text-xs mt-6">
+                Haz clic en una cita para ver el detalle, reprogramar o cancelar.
+            </p>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

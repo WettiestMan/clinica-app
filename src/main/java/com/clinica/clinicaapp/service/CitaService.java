@@ -26,7 +26,7 @@ public class CitaService {
     /**
      * RF-02 / HU-01: Bloquea el turno en estado temporal 'EN_PROCESO' y fija el temporizador de 15 minutos.
      */
-    @Transactional
+   @Transactional
     public Cita iniciarProcesoEmision(Long turnoId, Paciente paciente) {
         Turno turno = turnoRepository.findById(turnoId)
                 .orElseThrow(() -> new IllegalArgumentException("El turno no existe"));
@@ -35,11 +35,16 @@ public class CitaService {
             throw new IllegalStateException("El turno ya no se encuentra disponible.");
         }
 
+        // Si quedó un intento previo en EN_PROCESO para este turno, limpiarlo
+        citaRepository.findAll().stream()
+                .filter(c -> c.getTurno().getId().equals(turnoId) && "EN_PROCESO".equals(c.getEstado()))
+                .findFirst()
+                .ifPresent(citaRepository::delete);
+
         // Bloqueo temporal
         turno.setEstado("EN_PROCESO");
         turnoRepository.save(turno);
 
-        // Definición de precio según duración o especialidad
         BigDecimal costoConsulta = (turno.getDuracionMinutos() <= 15) ? new BigDecimal("45.00") : new BigDecimal("70.00");
 
         Cita cita = new Cita();
@@ -47,12 +52,11 @@ public class CitaService {
         cita.setTurno(turno);
         cita.setEstado("EN_PROCESO");
         cita.setMonto(costoConsulta);
-        cita.setFechaRegistro(LocalDateTime.now()); // <-- Asignar fecha_registro
-        cita.setFechaBloqueoExpiracion(LocalDateTime.now().plusMinutes(15)); // RF-04: 15 minutos de temporizador
+        cita.setFechaRegistro(LocalDateTime.now());
+        cita.setFechaBloqueoExpiracion(LocalDateTime.now().plusMinutes(15));
 
         return citaRepository.save(cita);
     }
-
     /**
      * RF-03, RF-05, RF-08 / HU-02, HU-03: Procesa el pago, emite código único y cierra el turno como OCUPADO.
      */

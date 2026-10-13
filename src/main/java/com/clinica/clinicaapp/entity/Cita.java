@@ -34,14 +34,14 @@ public class Cita {
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
     }
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paciente_id", nullable = false)
     private Paciente paciente;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "turno_id", nullable = false)
-    private Turno turno;
+    @ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "turno_id", nullable = false)
+private Turno turno;
 
     @Column(nullable = false, length = 30)
     private String estado; // EN_PROCESO, CONFIRMADA, EXPIRADA, CANCELADA

@@ -15,7 +15,7 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
     // RF-01 / HU-01: Búsqueda dinámica con filtro opcional de especialidad y rango de fechas
     @Query("SELECT t FROM Turno t WHERE (:especialidadId IS NULL OR t.medico.especialidad.id = :especialidadId) " +
            "AND t.fecha BETWEEN :fechaDesde AND :fechaHasta " +
-           "AND t.estado = 'DISPONIBLE' " +
+           //"AND t.estado = 'DISPONIBLE' " +
            "ORDER BY t.fecha ASC, t.horaInicio ASC")
     List<Turno> buscarTurnosDisponibles(@Param("especialidadId") Long especialidadId,
                                         @Param("fechaDesde") LocalDate fechaDesde,

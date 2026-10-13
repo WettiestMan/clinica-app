@@ -54,13 +54,6 @@ public class CancelacionController {
           HttpStatus.FORBIDDEN, "Solicitud inválida. Recarga la página.");
   }
 
-  @GetMapping("/mis-citas")
-  public String lista(HttpSession s, Model m) {
-    if (s.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-    m.addAttribute("citas", citas.findByPacienteIdOrderByFechaRegistroDesc(usuario(s)));
-    return "mis-citas";
-  }
-
   @GetMapping("/cancelar")
   public String formulario(@RequestParam(required = false) Long id, HttpSession s, Model m) {
     if (s.getAttribute("usuarioLogueado") == null) return "redirect:/login";

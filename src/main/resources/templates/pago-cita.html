@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SaludCitas - 3 · Pagar Cita</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Poppins', sans-serif; }</style>
+</head>
+<body class="bg-[#F4F6F6] min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-xl w-full">
+        
+        <!-- Barra de Progreso -->
+        <div class="grid grid-cols-4 gap-3 mb-6">
+            <div><span class="text-xs font-medium text-zinc-400">1 · Buscar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
+            <div><span class="text-xs font-medium text-zinc-400">2 · Confirmar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
+            <div><span class="text-xs font-medium text-black">3 · Pagar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
+            <div><span class="text-xs font-medium text-zinc-400">4 · Ticket</span><div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div></div>
+        </div>
+
+        <!-- Banner del Temporizador (RF-04) -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between mb-6">
+            <div>
+                <p class="text-xs text-amber-800 font-medium">Turno bloqueado temporalmente</p>
+                <p class="text-xs text-amber-600">Completa el pago antes de que expire la reserva.</p>
+            </div>
+            <div id="cronometro" class="text-xl font-bold text-amber-800 tracking-wider">15:00</div>
+        </div>
+
+        <h3 class="text-2xl font-bold text-black mb-1">Pasarela de Pagos</h3>
+        <p class="text-zinc-500 text-sm mb-6">Monto a pagar: <strong class="text-black" th:text="${'S/ ' + cita.monto}"></strong></p>
+
+        <form th:action="@{/citas/procesar-pago}" method="post" class="space-y-4">
+            <input type="hidden" name="citaId" th:value="${cita.id}">
+            <input type="hidden" name="metodoPago" value="TARJETA_CREDITO_DEBITO">
+
+            <div>
+                <label class="text-zinc-600 text-sm font-medium">Número de Tarjeta</label>
+                <input type="text" name="numeroTarjeta" placeholder="4242 •••• •••• 4242" required
+                       class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-zinc-600 text-sm font-medium">Vencimiento</label>
+                    <input type="text" placeholder="MM/AA" required
+                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                </div>
+                <div>
+                    <label class="text-zinc-600 text-sm font-medium">CVV</label>
+                    <input type="password" maxlength="3" placeholder="•••" required
+                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                </div>
+            </div>
+
+            <button type="submit" 
+                    class="w-full mt-4 py-3.5 bg-[#2D735C] text-white font-medium rounded-xl hover:bg-[#235b49] transition shadow-sm">
+                Pagar y Emitir Cita Médica
+            </button>
+        </form>
+    </div>
+
+    <!-- Script del Temporizador de 15 Minutos -->
+    <script>
+        let tiempoRestante = 15 * 60;
+        const cronometro = document.getElementById('cronometro');
+
+        const intervalo = setInterval(() => {
+            const minutos = Math.floor(tiempoRestante / 60);
+            const segundos = tiempoRestante % 60;
+            cronometro.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+
+            if (tiempoRestante <= 0) {
+                clearInterval(intervalo);
+                alert("El tiempo de 15 minutos ha expirado. El turno será liberado.");
+                window.location.href = "/citas/agendar?error=tiempo_expirado";
+            }
+            tiempoRestante--;
+        }, 1000);
+    </script>
+</body>
+</html>

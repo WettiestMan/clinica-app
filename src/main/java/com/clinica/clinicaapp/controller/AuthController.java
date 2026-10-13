@@ -50,7 +50,8 @@ public class AuthController {
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
+        session.invalidate(); // Destruye la sesión del paciente
+        return "redirect:/login?logout";
     }
+    
 }

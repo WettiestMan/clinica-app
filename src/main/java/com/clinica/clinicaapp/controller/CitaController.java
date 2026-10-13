@@ -133,4 +133,31 @@ public class CitaController {
         model.addAttribute("cita", cita);
         return "comprobante-cita";
     }
+
+    @GetMapping("/mis-citas")
+    public String misCitas(
+            @RequestParam(name = "tab", defaultValue = "proximas") String tab,
+            HttpSession session, 
+            Model model) {
+
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) {
+            return "redirect:/login";
+        }
+
+        List<Cita> citas;
+
+        if ("historicas".equalsIgnoreCase(tab)) {
+            citas = citaRepository.findHistoricas(paciente.getId());
+        } else {
+            tab = "proximas";
+            citas = citaRepository.findProximas(paciente.getId());
+        }
+
+        model.addAttribute("tabActiva", tab);
+        model.addAttribute("citas", citas);
+        model.addAttribute("paciente", paciente);
+
+        return "mis-citas";
+    }
 }

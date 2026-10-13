@@ -74,7 +74,7 @@ public class CitaService {
         cita.setCodigoCita(codigoCita);
         cita.setEstado("CONFIRMADA");
         cita.setMetodoPago(metodoPago);
-        cita.setNumeroOperacion("OP-" + System.currentTimeMillis() % 1000000);
+        cita.setNumeroOperacion("OP-" + (System.currentTimeMillis() % 1000000));
 
         // RF-08: Transición definitiva del turno
         Turno turno = cita.getTurno();

@@ -2,6 +2,7 @@ package com.clinica.clinicaapp.controller;
 
 import com.clinica.clinicaapp.entity.Paciente;
 import com.clinica.clinicaapp.service.PacienteService;
+import com.clinica.clinicaapp.service.EmailService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,9 +14,11 @@ import java.util.Optional;
 public class AuthController {
 
     private final PacienteService pacienteService;
+    private final EmailService emailService;
 
-    public AuthController(PacienteService pacienteService) {
+    public AuthController(PacienteService pacienteService, EmailService emailService) {
         this.pacienteService = pacienteService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/login")
@@ -64,16 +67,24 @@ public class AuthController {
 
     // Paso 2: Valida en la base de datos si el correo existe
     @PostMapping("/recuperar-password/solicitar")
-    public String solicitarRecuperacion(@RequestParam String correo) {
+    public String solicitarRecuperacion(@RequestParam String correo, jakarta.servlet.http.HttpServletRequest request) {
         Optional<Paciente> pacienteOpt = pacienteService.buscarPorCorreo(correo);
         
-        // Si no existe, vuelve mostrando el error rojo
         if (pacienteOpt.isEmpty()) {
             return "redirect:/recuperar-password?error=no_existe";
         }
 
-        // Si existe, avanza a la pantalla de restablecer enviando el correo
-        return "redirect:/restablecer-password?correo=" + correo;
+        // Construir la URL completa: http://localhost:8080/restablecer-password?correo=...
+        String scheme = request.getScheme();
+        String serverName = request.getServerName();
+        int serverPort = request.getServerPort();
+        String enlace = scheme + "://" + serverName + ":" + serverPort + "/restablecer-password?correo=" + correo;
+
+        // Envío asíncrono hacia Mailtrap
+        emailService.enviarEnlaceRecuperacion(correo, enlace);
+
+        return "redirect:/recuperar-password?enviado=true";
+        //return "redirect:/restablecer-password?correo=" + correo;
     }
 
     // Paso 3: Muestra la pantalla para crear la nueva clave (restablecer-password.html)

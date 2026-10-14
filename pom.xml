@@ -37,6 +37,13 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+
+        <!-- Envío de correos -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- Base de datos y Persistencia -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

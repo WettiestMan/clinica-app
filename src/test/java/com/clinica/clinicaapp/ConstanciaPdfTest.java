@@ -6,6 +6,8 @@ import com.clinica.clinicaapp.entity.*;
 import com.clinica.clinicaapp.service.ConstanciaPdf;
 import java.math.BigDecimal;
 import java.time.Instant;
+
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
@@ -25,7 +27,7 @@ class ConstanciaPdfTest {
     b.setMontoReintegrable(new BigDecimal("100.00"));
     b.setEstadoReintegro("PENDIENTE_PROCESAMIENTO");
     b.setDentroPlazo(true);
-    try (PDDocument d = PDDocument.load(new ConstanciaPdf().generar(b))) {
+    try (PDDocument d = Loader.loadPDF(new ConstanciaPdf().generar(b))) {
       String texto = new PDFTextStripper().getText(d);
       assertTrue(texto.contains("CIT-PRUEBA"));
       assertTrue(texto.contains("100.00"));

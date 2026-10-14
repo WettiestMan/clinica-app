@@ -3,48 +3,40 @@ package com.clinica.clinicaapp.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "citas")
+@Getter
+@Setter
 public class Cita {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigo_cita", unique = true, length = 30)
-    private String codigoCita; // Ej: CIT-2026-X8F2A
+    // Código utilizado por SP-03.
+    @Column(unique = true, length = 40)
+    private String codigo;
 
+    // Código utilizado por el flujo de emisión de citas.
+    @Column(name = "codigo_cita", unique = true, length = 30)
+    private String codigoCita;
 
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.fechaRegistro == null) {
-            this.fechaRegistro = LocalDateTime.now();
-        }
-    }
-
-    // Getter y Setter
-    public LocalDateTime getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(LocalDateTime fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
-    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paciente_id", nullable = false)
     private Paciente paciente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "turno_id", nullable = false)
-private Turno turno;
+    @JoinColumn(name = "turno_id", nullable = false)
+    private Turno turno;
 
     @Column(nullable = false, length = 30)
-    private String estado; // EN_PROCESO, CONFIRMADA, EXPIRADA, CANCELADA
+    private String estado = "PENDIENTE_PAGO";
 
     @Column(precision = 10, scale = 2)
     private BigDecimal monto;
@@ -58,33 +50,22 @@ private Turno turno;
     @Column(name = "numero_operacion", length = 50)
     private String numeroOperacion;
 
-    public Cita() {}
+    public Cita() {
+    }
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @PrePersist
+    public void prePersist() {
+        if (fechaRegistro == null) {
+            fechaRegistro = LocalDateTime.now();
+        }
+    }
 
-    public String getCodigoCita() { return codigoCita; }
-    public void setCodigoCita(String codigoCita) { this.codigoCita = codigoCita; }
+    @Transient
+    public String getCodigoVisible() {
+        if (id != null) {
+            return String.format(java.util.Locale.ROOT, "CIT-%06d", id);
+        }
 
-    public Paciente getPaciente() { return paciente; }
-    public void setPaciente(Paciente paciente) { this.paciente = paciente; }
-
-    public Turno getTurno() { return turno; }
-    public void setTurno(Turno turno) { this.turno = turno; }
-
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
-
-    public BigDecimal getMonto() { return monto; }
-    public void setMonto(BigDecimal monto) { this.monto = monto; }
-
-    public LocalDateTime getFechaBloqueoExpiracion() { return fechaBloqueoExpiracion; }
-    public void setFechaBloqueoExpiracion(LocalDateTime fechaBloqueoExpiracion) { this.fechaBloqueoExpiracion = fechaBloqueoExpiracion; }
-
-    public String getMetodoPago() { return metodoPago; }
-    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
-
-    public String getNumeroOperacion() { return numeroOperacion; }
-    public void setNumeroOperacion(String numeroOperacion) { this.numeroOperacion = numeroOperacion; }
+        return codigo != null ? codigo : codigoCita;
+    }
 }

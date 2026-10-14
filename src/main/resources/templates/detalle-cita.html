@@ -1,98 +1,102 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaludCitas - Detalle de cita</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Poppins', sans-serif; }</style>
-</head>
-<body class="bg-[#F4F6F6] min-h-screen flex overflow-hidden">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SaludCitas - Detalle de cita</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>body {
+                font-family: 'Poppins', sans-serif;
+            }</style>
+    </head>
+    <body class="bg-[#F4F6F6] min-h-screen flex overflow-hidden">
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-[#DCEEEA] flex flex-col justify-between h-screen border-r border-[#CFE3DF] flex-shrink-0">
-        <div>
-            <div class="pt-8 pb-10 flex flex-col items-center gap-2">
-                <h1 class="text-3xl font-medium text-zinc-800 tracking-tight">SaludCitas</h1>
-                <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center p-2.5 border border-red-100">
-                    <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-red-500 stroke-current" stroke-width="2">
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-[#DCEEEA] flex flex-col justify-between h-screen border-r border-[#CFE3DF] flex-shrink-0">
+            <div>
+                <div class="pt-8 pb-10 flex flex-col items-center gap-2">
+                    <h1 class="text-3xl font-medium text-zinc-800 tracking-tight">SaludCitas</h1>
+                    <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center p-2.5 border border-red-100">
+                        <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-red-500 stroke-current" stroke-width="2">
                         <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" fill="#EF4444" stroke="#EF4444" fill-opacity="0.1"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 12h2l1-2.5 2 5 1-2.5h2" stroke="#EF4444"/>
-                    </svg>
+                        </svg>
+                    </div>
                 </div>
-            </div>
-            <nav class="space-y-2 px-3">
-                <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-normal">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Inicio</span>
-                </a>
-                <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-normal">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    <span>Agendar Cita</span>
-                </a>
-                <a th:href="@{/citas/mis-citas}" class="flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#A2D9CE] text-zinc-800 font-medium text-base shadow-sm">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    <span>Mis Citas</span>
-                </a>
-            </nav>
-        </div>
-        <div class="p-4 border-t border-[#0F766E]/20">
-            <a th:href="@{/logout}" class="flex items-center gap-3 px-3 py-2 text-zinc-800 hover:text-red-700 transition font-normal text-base">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                <span>Cerrar Sesión</span>
-            </a>
-        </div>
-    </aside>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto px-12 py-8">
-        <h2 class="text-3xl font-bold text-black mb-8">Detalle de cita</h2>
-
-        <!-- Alert si está fuera de plazo (24h) -->
-        <div th:if="${param.error}" class="mb-4 max-w-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
-            <p th:text="${param.error}"></p>
-        </div>
-
-        <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-2xl">
-            <h3 class="text-xl font-semibold text-black">Detalle de cita</h3>
-            <p class="text-zinc-500 text-sm mt-1 mb-8">Desde aquí puedes reprogramar o cancelar esta cita.</p>
-
-            <!-- Card Gris del Detalle -->
-            <div class="bg-[#EFF2F2] rounded-2xl p-6 mb-8">
-                <div class="flex justify-between items-center mb-3 text-sm">
-                    <span class="text-zinc-500 uppercase tracking-wide text-xs font-semibold">ESPECIALIDAD</span>
-                    <span class="text-zinc-800 font-medium" th:text="${cita.turno.medico.especialidad.nombre}">Cardiologia</span>
-                </div>
-                <div class="flex justify-between items-center mb-4 text-sm border-b border-[#2D735C]/20 pb-4">
-                    <span class="text-zinc-500 uppercase tracking-wide text-xs font-semibold">MÉDICO</span>
-                    <span class="text-zinc-800 font-medium" th:text="${cita.turno.medico.nombres + ' ' + cita.turno.medico.apellidos}">Dr. Tello</span>
-                </div>
-                <div class="flex justify-between items-center text-sm pt-1">
-                    <span class="text-zinc-700 uppercase tracking-wide text-xs font-bold">FECHA Y HORA</span>
-                    <span class="text-black font-bold" th:text="${#temporals.format(cita.turno.fecha, 'dd MMM') + ' · ' + #temporals.format(cita.turno.horaInicio, 'HH:mm')}">31 ago · 09:00</span>
-                </div>
-
-                <!-- Botones Reprogramar y Cancelar -->
-                <div class="grid grid-cols-2 gap-4 mt-8">
-                    <a th:href="@{'/citas/reprogramar/' + ${cita.id}}" 
-                       class="py-3 px-4 rounded-xl border border-zinc-700 text-center font-medium text-zinc-800 hover:bg-zinc-100 transition">
-                        Reprogramar
+                <nav class="space-y-2 px-3">
+                    <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-normal">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <span>Inicio</span>
                     </a>
-                    <button type="button" 
-                            class="py-3 px-4 rounded-xl bg-[#F8B4AC] text-[#84261B] text-center font-medium hover:bg-[#f59e94] transition cursor-not-allowed"
-                            title="Disponible en SP-03">
-                        Cancelar
-                    </button>
-                </div>
+                    <a th:href="@{/citas/agendar}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-normal">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>Agendar Cita</span>
+                    </a>
+                    <a th:href="@{/citas/mis-citas}" class="flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#A2D9CE] text-zinc-800 font-medium text-base shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        <span>Mis Citas</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-[#0F766E]/20">
+                <a th:href="@{/logout}" class="flex items-center gap-3 px-3 py-2 text-zinc-800 hover:text-red-700 transition font-normal text-base">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="flex-1 flex flex-col h-screen overflow-y-auto px-12 py-8">
+            <h2 class="text-3xl font-bold text-black mb-8">Detalle de cita</h2>
+
+            <!-- Alert si está fuera de plazo (24h) -->
+            <div th:if="${param.error}" class="mb-4 max-w-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
+                <p th:text="${param.error}"></p>
             </div>
 
-            <!-- Botón Volver -->
-            <a th:href="@{/citas/mis-citas}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-zinc-400 text-zinc-700 font-medium text-sm hover:bg-zinc-50 transition">
-                ← Volver a Mis citas
-            </a>
-        </div>
-    </main>
+            <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-2xl">
+                <h3 class="text-xl font-semibold text-black">Detalle de cita</h3>
+                <p class="text-zinc-500 text-sm mt-1 mb-8">Desde aquí puedes reprogramar o cancelar esta cita.</p>
 
-</body>
+                <!-- Card Gris del Detalle -->
+                <div class="bg-[#EFF2F2] rounded-2xl p-6 mb-8">
+                    <div class="flex justify-between items-center mb-3 text-sm">
+                        <span class="text-zinc-500 uppercase tracking-wide text-xs font-semibold">ESPECIALIDAD</span>
+                        <span class="text-zinc-800 font-medium" th:text="${cita.turno.medico.especialidad.nombre}">Cardiologia</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-4 text-sm border-b border-[#2D735C]/20 pb-4">
+                        <span class="text-zinc-500 uppercase tracking-wide text-xs font-semibold">MÉDICO</span>
+                        <span class="text-zinc-800 font-medium" th:text="${cita.turno.medico.nombres + ' ' + cita.turno.medico.apellidos}">Dr. Tello</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm pt-1">
+                        <span class="text-zinc-700 uppercase tracking-wide text-xs font-bold">FECHA Y HORA</span>
+                        <span class="text-black font-bold" th:text="${#temporals.format(cita.turno.fecha, 'dd MMM') + ' · ' + #temporals.format(cita.turno.horaInicio, 'HH:mm')}">31 ago · 09:00</span>
+                    </div>
+
+                    <!-- Botones Reprogramar y Cancelar -->
+                    <div class="grid grid-cols-2 gap-4 mt-8">
+                        <a th:href="@{'/citas/reprogramar/' + ${cita.id}}" 
+                           class="py-3 px-4 rounded-xl border border-zinc-700 text-center font-medium text-zinc-800 hover:bg-zinc-100 transition">
+                            Reprogramar
+                        </a>
+                        <a th:if="${cita.estado == 'CONFIRMADA'
+                           or cita.estado == 'EMITIDA'
+                           or cita.estado == 'REPROGRAMADA'}"
+                           th:href="@{/citas/cancelar(id=${cita.id})}"
+                           class="py-3 px-4 rounded-xl bg-[#F8B4AC] text-[#84261B] text-center font-medium hover:bg-[#f59e94] transition">
+                            Cancelar
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Botón Volver -->
+                <a th:href="@{/citas/mis-citas}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-zinc-400 text-zinc-700 font-medium text-sm hover:bg-zinc-50 transition">
+                    ← Volver a Mis citas
+                </a>
+            </div>
+        </main>
+
+    </body>
 </html>

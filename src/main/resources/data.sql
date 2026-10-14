@@ -49,16 +49,14 @@ INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minuto
 (3, 1, '2026-10-14', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
 (4, 1, '2026-10-14', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
 (5, 1, '2026-10-14', '10:30:00', '11:00:00', 30, 'OCUPADO', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DR. TELLO (Cardiología - 15 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
 (6, 1, '2026-10-15', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
 (7, 1, '2026-10-15', '09:30:00', '10:00:00', 30, 'OCUPADO', false),
 (8, 1, '2026-10-15', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DRA. PEREZ (Cardiología - 14 y 15 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
@@ -66,8 +64,7 @@ INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minuto
 (10, 2, '2026-10-14', '14:30:00', '15:00:00', 30, 'OCUPADO', false),
 (11, 2, '2026-10-15', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
 (12, 2, '2026-10-15', '15:30:00', '16:00:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DR. RAMÍREZ (Pediatría - 14 y 16 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
@@ -76,8 +73,7 @@ INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minuto
 (15, 3, '2026-10-14', '09:00:00', '09:30:00', 30, 'OCUPADO', false),
 (16, 3, '2026-10-16', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
 (17, 3, '2026-10-16', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DRA. MENDOZA (Medicina General - Bloques de 15m - 14 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
@@ -85,41 +81,35 @@ INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minuto
 (19, 4, '2026-10-14', '08:15:00', '08:30:00', 15, 'OCUPADO', false),
 (20, 4, '2026-10-14', '08:30:00', '08:45:00', 15, 'DISPONIBLE', false),
 (21, 4, '2026-10-14', '08:45:00', '09:00:00', 15, 'DISPONIBLE', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DR. CASTILLO (Dermatología - 15 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
 (22, 5, '2026-10-15', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
 (23, 5, '2026-10-15', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
 (24, 5, '2026-10-15', '10:00:00', '10:30:00', 30, 'OCUPADO', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DR. VARGAS (Oftalmología - 16 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
 (25, 6, '2026-10-16', '11:00:00', '11:30:00', 30, 'DISPONIBLE', false),
 (26, 6, '2026-10-16', '11:30:00', '12:00:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DRA. SALAZAR (Traumatología - 16 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
 (27, 7, '2026-10-16', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
 (28, 7, '2026-10-16', '15:30:00', '16:00:00', 30, 'OCUPADO', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DRA. FLORES (Ginecología - 17 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
 (29, 8, '2026-10-17', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
 (30, 8, '2026-10-17', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;
 
 -- --- DR. NAVARRO (Odontología - 17 de Octubre 2026) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
 (31, 9, '2026-10-17', '10:00:00', '10:45:00', 45, 'DISPONIBLE', false),
 (32, 9, '2026-10-17', '10:45:00', '11:30:00', 45, 'OCUPADO', false)
-ON CONFLICT (id) DO UPDATE SET 
-    fecha = EXCLUDED.fecha, hora_inicio = EXCLUDED.hora_inicio, hora_fin = EXCLUDED.hora_fin, estado = EXCLUDED.estado;
+ON CONFLICT (id) DO NOTHING;

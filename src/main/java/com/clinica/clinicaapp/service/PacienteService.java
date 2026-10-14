@@ -36,4 +36,17 @@ public class PacienteService {
         }
         return Optional.empty();
     }
+
+    public Optional<Paciente> buscarPorCorreo(String correo) {
+        return pacienteRepository.findByCorreo(correo);
+    }
+
+    public void actualizarPassword(String correo, String nuevaPassword) {
+        Paciente paciente = pacienteRepository.findByCorreo(correo)
+                .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado"));
+        
+        // Encriptar la nueva contraseña con BCrypt antes de guardar
+        paciente.setPassword(passwordEncoder.encode(nuevaPassword));
+        pacienteRepository.save(paciente);
+    }
 }

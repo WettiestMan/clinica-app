@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,56 +10,65 @@
     <!-- Fuentes Poppins y Raleway -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; }
-        .font-raleway { font-family: 'Raleway', sans-serif; }
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .font-raleway {
+            font-family: 'Raleway', sans-serif;
+        }
+
         /* Evita que el navegador pinte de celeste el fondo al autocompletar */
         input:-webkit-autofill,
-        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:hover,
         input:-webkit-autofill:focus {
             -webkit-box-shadow: 0 0 0px 1000px #F2FBF9 inset !important;
             -webkit-text-fill-color: #282828 !important;
         }
     </style>
 </head>
+
 <body class="bg-white h-screen overflow-hidden p-0 m-0">
 
     <div class="w-full h-screen grid grid-cols-1 lg:grid-cols-12 bg-white overflow-hidden">
-        
+
         <!-- COLUMNA IZQUIERDA (Banner + Logo + Doctor) -->
-        <div class="lg:col-span-7 xl:col-span-8 flex flex-col justify-between h-screen max-h-screen relative overflow-hidden bg-white">
-            
+        <div
+            class="lg:col-span-7 xl:col-span-8 flex flex-col justify-between h-screen max-h-screen relative overflow-hidden bg-white">
+
             <!-- Encabezado con título y logo -->
             <div class="pt-10 px-12 xl:px-20 flex-shrink-0">
                 <div class="flex items-center gap-6">
                     <h1 class="text-4xl xl:text-5xl font-normal text-[#282828]">“SaludCitas”</h1>
-                    <img class="h-16 xl:h-20 w-auto object-contain" 
-                         th:src="@{/images/logo.svg}" 
-                         alt="Logo SaludCitas" />
+                    <img class="h-16 xl:h-20 w-auto object-contain" th:src="@{/images/logo.svg}"
+                        alt="Logo SaludCitas" />
                 </div>
                 <p class="text-lg xl:text-xl font-light text-[#282828] mt-3 tracking-normal">
                     Tu salud, tus citas, todo en un solo lugar.
                 </p>
             </div>
-            
+
             <!-- Imagen del doctor pegada al fondo -->
             <div class="w-full h-[65vh] relative mt-auto">
-                <img class="w-full h-full object-cover object-top" 
-                     th:src="@{/images/doctor.png}" 
-                     alt="SaludCitas Ilustración" />
+                <img class="w-full h-full object-cover object-top" th:src="@{/images/doctor.png}"
+                    alt="SaludCitas Ilustración" />
             </div>
         </div>
 
         <!-- COLUMNA DERECHA (Panel Formulario con franja superior) -->
-        <div class="lg:col-span-5 xl:col-span-4 bg-[#ECFDFB] flex flex-col justify-between h-screen max-h-screen relative overflow-y-auto">
-            
+        <div
+            class="lg:col-span-5 xl:col-span-4 bg-[#ECFDFB] flex flex-col justify-between h-screen max-h-screen relative overflow-y-auto">
+
             <!-- Franja decorativa superior idéntica a Figma -->
             <div class="w-full h-24 bg-[#D7F5F0] flex-shrink-0"></div>
 
             <!-- Contenedor central del formulario -->
             <div class="w-full max-w-[360px] mx-auto px-6 py-4 flex flex-col justify-center my-auto">
-                
+
                 <!-- Encabezados centrados -->
                 <h2 class="text-3xl font-normal text-[#282828] text-center mb-2 leading-tight">
                     Bienvenido a<br>SaludCitas
@@ -68,13 +78,23 @@
                 </p>
 
                 <!-- Formulario -->
+                <!-- Mensaje de credenciales incorrectas -->
+                <div th:if="${param.error}"
+                    class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                    <svg class="w-5 h-5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>El correo o la contraseña ingresados son incorrectos.</span>
+                </div>
                 <form th:action="@{/login}" method="post" class="space-y-4">
-                    
+
                     <!-- Campo Correo -->
                     <div class="flex flex-col gap-1.5">
                         <label for="correo" class="font-raleway text-[#282828] text-sm font-medium">Correo</label>
                         <input type="email" id="correo" name="correo" required
-                               class="w-full px-5 py-2 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
+                            class="w-full px-5 py-2 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
                     </div>
 
                     <!-- Campo Contraseña con ícono -->
@@ -82,11 +102,14 @@
                         <label for="password" class="font-raleway text-[#282828] text-sm font-medium">Contraseña</label>
                         <div class="relative w-full">
                             <input type="password" id="password" name="password" required
-                                   class="w-full px-5 py-2 pr-11 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
+                                class="w-full px-5 py-2 pr-11 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
                             <!-- Ícono de ojo tachado -->
-                            <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black">
-                                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            <button type="button" onclick="togglePassword()"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black">
+                                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                                 </svg>
                             </button>
                         </div>
@@ -94,15 +117,16 @@
 
                     <!-- Botón Ingresar -->
                     <div class="pt-3">
-                        <button type="submit" 
-                                class="w-full bg-[#134700] text-white font-raleway text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1a5f00] transition text-center shadow-sm">
+                        <button type="submit"
+                            class="w-full bg-[#134700] text-white font-raleway text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1a5f00] transition text-center shadow-sm">
                             Ingresar
                         </button>
                     </div>
 
                     <!-- Enlace Olvidaste tu contraseña -->
                     <div class="text-center pt-1">
-                        <a th:href="@{/recuperar-password}" class="text-[#1D48DF] font-raleway font-bold text-xs underline">
+                        <a th:href="@{/recuperar-password}"
+                            class="text-[#1D48DF] font-raleway font-bold text-xs underline">
                             ¿Olvidaste Tu Contraseña?
                         </a>
                     </div>
@@ -137,4 +161,5 @@
     </script>
 
 </body>
+
 </html>

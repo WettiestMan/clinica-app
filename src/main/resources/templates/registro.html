@@ -68,7 +68,13 @@
                     <!-- Fila 2: DNI -->
                     <div class="w-1/2 pr-1.5 flex flex-col gap-1">
                         <label for="dni" class="text-zinc-600 text-xs font-medium">DNI</label>
-                        <input type="text" id="dni" name="dni" required maxlength="8"
+                        <input type="text" id="dni" name="dni" required 
+                               maxlength="8" 
+                               minlength="8"
+                               pattern="[0-9]{8}"
+                               inputmode="numeric"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                               title="El DNI debe contener exactamente 8 dígitos numéricos"
                                placeholder="Ingrese su DNI"
                                class="w-full px-4 py-2 bg-gray-100 rounded-xl outline-none text-zinc-700 text-xs placeholder:text-zinc-400 focus:ring-1 focus:ring-zinc-400">
                     </div>
@@ -83,19 +89,53 @@
 
                     <!-- Fila 4: Contraseñas -->
                     <div class="grid grid-cols-2 gap-3">
+                        <!-- Campo Contraseña -->
                         <div class="flex flex-col gap-1">
                             <label for="password" class="text-zinc-600 text-xs font-medium">Contraseña</label>
-                            <input type="password" id="password" name="password" required
-                                   placeholder="contraseña"
-                                   class="w-full px-4 py-2 bg-gray-100 rounded-xl outline-none text-zinc-700 text-xs placeholder:text-zinc-400 focus:ring-1 focus:ring-zinc-400">
+                            <div class="relative w-full">
+                                <input type="password" id="password" name="password" required
+                                       pattern="(?=.*[A-Z])(?=.*\d).{8,}"
+                                       title="Debe tener mínimo 8 caracteres, al menos una mayúscula y un número"
+                                       placeholder="contraseña"
+                                       class="w-full px-4 py-2 pr-9 bg-gray-100 rounded-xl outline-none text-zinc-700 text-xs placeholder:text-zinc-400 focus:ring-1 focus:ring-zinc-400">
+                                <button type="button" onclick="togglePasswordVisibility('password', 'eye-pass-closed', 'eye-pass-open')" 
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black focus:outline-none" tabindex="-1">
+                                    <svg id="eye-pass-closed" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                    </svg>
+                                    <svg id="eye-pass-open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- Campo Confirmar Contraseña -->
                         <div class="flex flex-col gap-1">
                             <label for="confirmPassword" class="text-zinc-600 text-xs font-medium">Confirmar Contraseña</label>
-                            <input type="password" id="confirmPassword" name="confirmPassword" required
-                                   placeholder="contraseña"
-                                   class="w-full px-4 py-2 bg-gray-100 rounded-xl outline-none text-zinc-700 text-xs placeholder:text-zinc-400 focus:ring-1 focus:ring-zinc-400">
+                            <div class="relative w-full">
+                                <input type="password" id="confirmPassword" name="confirmPassword" required
+                                       placeholder="contraseña"
+                                       class="w-full px-4 py-2 pr-9 bg-gray-100 rounded-xl outline-none text-zinc-700 text-xs placeholder:text-zinc-400 focus:ring-1 focus:ring-zinc-400">
+                                <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'eye-conf-closed', 'eye-conf-open')" 
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black focus:outline-none" tabindex="-1">
+                                    <svg id="eye-conf-closed" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                    </svg>
+                                    <svg id="eye-conf-open" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Mensaje dinámico de error si las contraseñas no coinciden -->
+                    <p id="passwordMismatchError" class="text-red-500 text-[11px] font-medium hidden">
+                        Las contraseñas no coinciden.
+                    </p>
 
                     <!-- Requisito de clave -->
                     <p class="text-stone-600 text-[11px] font-normal pt-0.5">
@@ -130,4 +170,39 @@
     </div>
 
 </body>
+
+<script>
+        function togglePasswordVisibility(inputId, closedIconId, openIconId) {
+            const input = document.getElementById(inputId);
+            const closedIcon = document.getElementById(closedIconId);
+            const openIcon = document.getElementById(openIconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                closedIcon.classList.add('hidden');
+                openIcon.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                closedIcon.classList.remove('hidden');
+                openIcon.classList.add('hidden');
+            }
+        }
+
+        // Validación de coincidencia de contraseñas
+        const form = document.querySelector('form');
+        const pass = document.getElementById('password');
+        const confPass = document.getElementById('confirmPassword');
+        const errorMsg = document.getElementById('passwordMismatchError');
+
+        form.addEventListener('submit', function(e) {
+            if (pass.value !== confPass.value) {
+                e.preventDefault();
+                errorMsg.classList.remove('hidden');
+                confPass.focus();
+            } else {
+                errorMsg.classList.add('hidden');
+            }
+        });
+    </script>
+    
 </html>

@@ -53,5 +53,44 @@ public class AuthController {
         session.invalidate(); // Destruye la sesión del paciente
         return "redirect:/login?logout";
     }
-    
+
+    // ================= RECUPERACIÓN DE CONTRASEÑA =================
+
+    // Paso 1: Muestra solicitar correo (recuperar-password.html)
+    @GetMapping("/recuperar-password")
+    public String vistaRecuperarPassword() {
+        return "recuperar-password";
+    }
+
+    // Paso 2: Valida en la base de datos si el correo existe
+    @PostMapping("/recuperar-password/solicitar")
+    public String solicitarRecuperacion(@RequestParam String correo) {
+        Optional<Paciente> pacienteOpt = pacienteService.buscarPorCorreo(correo);
+        
+        // Si no existe, vuelve mostrando el error rojo
+        if (pacienteOpt.isEmpty()) {
+            return "redirect:/recuperar-password?error=no_existe";
+        }
+
+        // Si existe, avanza a la pantalla de restablecer enviando el correo
+        return "redirect:/restablecer-password?correo=" + correo;
+    }
+
+    // Paso 3: Muestra la pantalla para crear la nueva clave (restablecer-password.html)
+    @GetMapping("/restablecer-password")
+    public String vistaRestablecerPassword(@RequestParam(required = false) String correo, Model model) {
+        if (correo == null || correo.trim().isEmpty()) {
+            return "redirect:/recuperar-password";
+        }
+        model.addAttribute("correo", correo);
+        return "restablecer-password";
+    }
+
+    // Paso 4: Actualiza la clave en la BD y redirige a login
+    @PostMapping("/recuperar-password/cambiar")
+    public String cambiarPassword(@RequestParam String correo, 
+                                  @RequestParam String nuevaPassword) {
+        pacienteService.actualizarPassword(correo, nuevaPassword);
+        return "redirect:/login?passwordRestablecida";
+    }
 }

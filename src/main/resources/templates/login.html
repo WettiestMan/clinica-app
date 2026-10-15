@@ -32,13 +32,13 @@
     </style>
 </head>
 
-<body class="bg-white h-screen overflow-hidden p-0 m-0">
+<body class="bg-[#ECFDFB] lg:bg-white min-h-screen p-0 m-0">
 
-    <div class="w-full h-screen grid grid-cols-1 lg:grid-cols-12 bg-white overflow-hidden">
+    <div class="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white">
 
-        <!-- COLUMNA IZQUIERDA (Banner + Logo + Doctor) -->
+        <!-- COLUMNA IZQUIERDA: Oculta en móviles (hidden), visible solo en pantallas grandes (lg:flex) -->
         <div
-            class="lg:col-span-7 xl:col-span-8 flex flex-col justify-between h-screen max-h-screen relative overflow-hidden bg-white">
+            class="hidden lg:flex lg:col-span-7 xl:col-span-8 flex-col justify-between h-screen max-h-screen relative overflow-hidden bg-white">
 
             <!-- Encabezado con título y logo -->
             <div class="pt-10 px-12 xl:px-20 flex-shrink-0">
@@ -59,25 +59,24 @@
             </div>
         </div>
 
-        <!-- COLUMNA DERECHA (Panel Formulario con franja superior) -->
+        <!-- COLUMNA DERECHA: Formulario (En móvil ocupa el 100% y tiene scroll habilitado) -->
         <div
-            class="lg:col-span-5 xl:col-span-4 bg-[#ECFDFB] flex flex-col justify-between h-screen max-h-screen relative overflow-y-auto">
+            class="lg:col-span-5 xl:col-span-4 bg-[#ECFDFB] flex flex-col justify-between min-h-screen lg:h-screen relative overflow-y-auto">
 
-            <!-- Franja decorativa superior idéntica a Figma -->
-            <div class="w-full h-24 bg-[#D7F5F0] flex-shrink-0"></div>
+            <!-- Franja decorativa superior -->
+            <div class="w-full h-16 lg:h-24 bg-[#D7F5F0] flex-shrink-0"></div>
 
             <!-- Contenedor central del formulario -->
-            <div class="w-full max-w-[360px] mx-auto px-6 py-4 flex flex-col justify-center my-auto">
+            <div class="w-full max-w-[360px] mx-auto px-6 py-6 flex flex-col justify-center my-auto">
 
                 <!-- Encabezados centrados -->
-                <h2 class="text-3xl font-normal text-[#282828] text-center mb-2 leading-tight">
+                <h2 class="text-2xl sm:text-3xl font-normal text-[#282828] text-center mb-2 leading-tight">
                     Bienvenido a<br>SaludCitas
                 </h2>
-                <p class="text-xs text-[#4A4A4A] font-light mb-8 text-center px-2">
+                <p class="text-xs text-[#4A4A4A] font-light mb-6 text-center px-2">
                     Puedes reservar tus citas médicas el mismo día y pagarla tan sólo con un click.
                 </p>
 
-                <!-- Formulario -->
                 <!-- Mensaje de credenciales incorrectas -->
                 <div th:if="${param.error}"
                     class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
@@ -88,13 +87,16 @@
                     </svg>
                     <span>El correo o la contraseña ingresados son incorrectos.</span>
                 </div>
+
+                <!-- Formulario -->
                 <form th:action="@{/login}" method="post" class="space-y-4">
 
                     <!-- Campo Correo -->
                     <div class="flex flex-col gap-1.5">
                         <label for="correo" class="font-raleway text-[#282828] text-sm font-medium">Correo</label>
                         <input type="email" id="correo" name="correo" required
-                            class="w-full px-5 py-2 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
+                            placeholder="ejemplo@correo.com"
+                            class="w-full px-5 py-2.5 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
                     </div>
 
                     <!-- Campo Contraseña con ícono -->
@@ -102,11 +104,12 @@
                         <label for="password" class="font-raleway text-[#282828] text-sm font-medium">Contraseña</label>
                         <div class="relative w-full">
                             <input type="password" id="password" name="password" required
-                                class="w-full px-5 py-2 pr-11 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
-                            <!-- Ícono de ojo tachado -->
+                                placeholder="••••••••"
+                                class="w-full px-5 py-2.5 pr-11 rounded-full border border-[#757575] bg-[#F2FBF9] outline-none focus:border-[#134700] text-[#282828] text-sm transition">
+                            
                             <button type="button" onclick="togglePassword()"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black">
-                                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black focus:outline-none">
+                                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
@@ -118,21 +121,21 @@
                     <!-- Botón Ingresar -->
                     <div class="pt-3">
                         <button type="submit"
-                            class="w-full bg-[#134700] text-white font-raleway text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1a5f00] transition text-center shadow-sm">
+                            class="w-full bg-[#134700] text-white font-raleway text-sm font-semibold py-3 rounded-lg hover:bg-[#1a5f00] transition text-center shadow-sm active:scale-[0.98]">
                             Ingresar
                         </button>
                     </div>
 
                     <!-- Enlace Olvidaste tu contraseña -->
-                    <div class="text-center pt-1">
-                        <a th:href="@{/restablecer-password}"
+                    <div class="text-center pt-2">
+                        <a th:href="@{/recuperar-password}"
                             class="text-[#1D48DF] font-raleway font-bold text-xs underline">
                             ¿Olvidaste Tu Contraseña?
                         </a>
                     </div>
 
                     <!-- Enlace Registrarme -->
-                    <div class="flex items-center justify-center gap-1.5 pt-4 text-xs font-raleway">
+                    <div class="flex items-center justify-center gap-1.5 pt-3 text-xs font-raleway">
                         <span class="text-[#282828]">¿Aún No Tienes Una Cuenta?</span>
                         <a th:href="@{/registro}" class="text-[#1D48DF] font-bold underline">
                             Registrarme
@@ -141,14 +144,14 @@
                 </form>
             </div>
 
-            <!-- Espaciador inferior para balancear la franja superior -->
-            <div class="h-8 flex-shrink-0"></div>
+            <!-- Espaciador inferior -->
+            <div class="h-6 flex-shrink-0"></div>
 
         </div>
 
     </div>
 
-    <!-- Script sencillo para alternar ver contraseña -->
+    <!-- Script para alternar contraseña -->
     <script>
         function togglePassword() {
             const input = document.getElementById('password');

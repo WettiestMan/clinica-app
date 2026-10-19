@@ -183,8 +183,10 @@
 
                     <!-- Botón de acción -->
                     <div class="pt-8">
-                        <button type="submit" 
-                                class="px-8 py-3 bg-[#2D735C] text-white font-medium text-base rounded-xl hover:bg-[#235b49] transition shadow-sm">
+                        <button type="submit"
+                                id="btnContinuarReserva"
+                                disabled
+                                class="px-8 py-3 bg-gray-300 text-gray-500 font-medium text-base rounded-xl transition shadow-sm cursor-not-allowed">
                             Continuar con la reserva
                         </button>
                     </div>
@@ -194,6 +196,51 @@
         </div>
 
     </main>
+
+    <script>
+        const btnContinuar = document.getElementById('btnContinuarReserva');
+        const turnos = document.querySelectorAll('input[name="turnoId"]');
+
+        function actualizarBoton() {
+            const turnoSeleccionado = document.querySelector(
+                'input[name="turnoId"]:checked'
+            );
+
+            if (turnoSeleccionado) {
+                btnContinuar.disabled = false;
+                btnContinuar.classList.remove(
+                    'bg-gray-300',
+                    'text-gray-500',
+                    'cursor-not-allowed'
+                );
+                btnContinuar.classList.add(
+                    'bg-[#2D735C]',
+                    'text-white',
+                    'hover:bg-[#235b49]',
+                    'cursor-pointer'
+                );
+            } else {
+                btnContinuar.disabled = true;
+                btnContinuar.classList.remove(
+                    'bg-[#2D735C]',
+                    'text-white',
+                    'hover:bg-[#235b49]',
+                    'cursor-pointer'
+                );
+                btnContinuar.classList.add(
+                    'bg-gray-300',
+                    'text-gray-500',
+                    'cursor-not-allowed'
+                );
+            }
+        }
+
+        turnos.forEach(function(turno) {
+            turno.addEventListener('change', actualizarBoton);
+        });
+
+        actualizarBoton();
+    </script>
 
 </body>
 </html>

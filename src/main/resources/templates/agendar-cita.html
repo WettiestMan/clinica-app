@@ -87,8 +87,8 @@
                 
                 <!-- Encabezado de la tarjeta -->
                 <div>
-                    <h3 class="text-xl font-semibold text-black">Buscar Disponibilidad</h3>
-                    <p class="text-zinc-500 text-sm mt-1">Filtra por especialidad para ver los turnos publicados y disponibles.</p>
+                    <h3 class="text-xl font-semibold text-black">Buscar turnos disponibles</h3>
+                    <p class="text-zinc-500 text-sm mt-1">Selecciona una especialidad y un rango de fechas para consultar los turnos disponibles.</p>
                 </div>
 
                 <!-- Aviso si intentó enviar sin seleccionar turno -->
@@ -100,10 +100,10 @@
                 <!-- 1. FORMULARIO DE FILTROS (GET) -->
                 <form th:action="@{/citas/agendar}" method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-zinc-600 text-sm font-medium">Especialidad</label>
+                        <label class="text-zinc-600 text-sm font-medium">Especialidad médica</label>
                         <select name="especialidadId" onchange="this.form.submit()"
                                 class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
-                            <option value="">Todas las especialidades</option>
+                            <option value="" class="text-zinc-350">Selecciona una especialidad</option>
                             <option th:each="esp : ${especialidades}" 
                                     th:value="${esp.id}" 
                                     th:text="${esp.nombre}"
@@ -113,13 +113,13 @@
                     </div>
 
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-zinc-600 text-sm font-medium">Desde</label>
+                        <label class="text-zinc-600 text-sm font-medium">Fecha inicial</label>
                         <input type="date" name="fechaDesde" th:value="${fechaDesde}" onchange="this.form.submit()"
                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
                     </div>
 
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-zinc-600 text-sm font-medium">Hasta</label>
+                        <label class="text-zinc-600 text-sm font-medium">Fecha final</label>
                         <input type="date" name="fechaHasta" th:value="${fechaHasta}" onchange="this.form.submit()"
                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
                     </div>

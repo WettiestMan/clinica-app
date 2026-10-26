@@ -1,10 +1,10 @@
 -- =====================================================
--- 0. CORRECCIÓN DE RESTRICCIÓN DE UNICIDAD
+-- 0. CORRECCIÓN DE RESTRICCIÓN DE UNICIDAD (SI APLICA)
 -- =====================================================
 ALTER TABLE citas DROP CONSTRAINT IF EXISTS uk_bbwh4ytnwechvo8kjw8p6pwdb;
 
 -- =====================================================
--- 1. ESPECIALIDADES (con duraciones estándar)
+-- 1. ESPECIALIDADES
 -- =====================================================
 INSERT INTO especialidades (id, nombre, duracion_minutos_default) VALUES 
 (1, 'Cardiologia', 30),
@@ -39,77 +39,87 @@ ON CONFLICT (id) DO UPDATE SET
     especialidad_id = EXCLUDED.especialidad_id;
 
 -- =====================================================
--- 3. TURNOS (Del 14 de Octubre de 2026 en adelante)
+-- 3. TURNOS VIGENTES (Del 23 al 31 de Octubre de 2026)
 -- =====================================================
 
--- --- DR. TELLO (Cardiología - 14 de Octubre 2026) ---
+-- --- CARDIOLOGÍA (Dr. Tello - 24 y 26 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(1, 1, '2026-10-14', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false),
-(2, 1, '2026-10-14', '09:00:00', '09:30:00', 30, 'OCUPADO', false),
-(3, 1, '2026-10-14', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
-(4, 1, '2026-10-14', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
-(5, 1, '2026-10-14', '10:30:00', '11:00:00', 30, 'OCUPADO', false)
+(101, 1, '2026-10-24', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false),
+(102, 1, '2026-10-24', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
+(103, 1, '2026-10-24', '09:30:00', '10:00:00', 30, 'OCUPADO', false),
+(104, 1, '2026-10-24', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
+(105, 1, '2026-10-26', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
+(106, 1, '2026-10-26', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
+(107, 1, '2026-10-26', '10:00:00', '10:30:00', 30, 'OCUPADO', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DR. TELLO (Cardiología - 15 de Octubre 2026) ---
+-- --- CARDIOLOGÍA (Dra. Perez - 25 y 27 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(6, 1, '2026-10-15', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
-(7, 1, '2026-10-15', '09:30:00', '10:00:00', 30, 'OCUPADO', false),
-(8, 1, '2026-10-15', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false)
+(108, 2, '2026-10-25', '14:00:00', '14:30:00', 30, 'DISPONIBLE', false),
+(109, 2, '2026-10-25', '14:30:00', '15:00:00', 30, 'DISPONIBLE', false),
+(110, 2, '2026-10-27', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
+(111, 2, '2026-10-27', '15:30:00', '16:00:00', 30, 'OCUPADO', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DRA. PEREZ (Cardiología - 14 y 15 de Octubre 2026) ---
+-- --- PEDIATRÍA (Dr. Ramirez - 24 y 26 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(9,  2, '2026-10-14', '14:00:00', '14:30:00', 30, 'DISPONIBLE', false),
-(10, 2, '2026-10-14', '14:30:00', '15:00:00', 30, 'OCUPADO', false),
-(11, 2, '2026-10-15', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
-(12, 2, '2026-10-15', '15:30:00', '16:00:00', 30, 'DISPONIBLE', false)
+(112, 3, '2026-10-24', '08:00:00', '08:30:00', 30, 'DISPONIBLE', false),
+(113, 3, '2026-10-24', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false),
+(114, 3, '2026-10-24', '09:00:00', '09:30:00', 30, 'OCUPADO', false),
+(115, 3, '2026-10-26', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
+(116, 3, '2026-10-26', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DR. RAMÍREZ (Pediatría - 14 y 16 de Octubre 2026) ---
+-- --- MEDICINA GENERAL (Dra. Mendoza - Bloques 15m - 24 y 25 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(13, 3, '2026-10-14', '08:00:00', '08:30:00', 30, 'DISPONIBLE', false),
-(14, 3, '2026-10-14', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false),
-(15, 3, '2026-10-14', '09:00:00', '09:30:00', 30, 'OCUPADO', false),
-(16, 3, '2026-10-16', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
-(17, 3, '2026-10-16', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false)
+(117, 4, '2026-10-24', '08:00:00', '08:15:00', 15, 'DISPONIBLE', false),
+(118, 4, '2026-10-24', '08:15:00', '08:30:00', 15, 'DISPONIBLE', false),
+(119, 4, '2026-10-24', '08:30:00', '08:45:00', 15, 'OCUPADO', false),
+(120, 4, '2026-10-24', '08:45:00', '09:00:00', 15, 'DISPONIBLE', false),
+(121, 4, '2026-10-25', '09:00:00', '09:15:00', 15, 'DISPONIBLE', false),
+(122, 4, '2026-10-25', '09:15:00', '09:30:00', 15, 'DISPONIBLE', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DRA. MENDOZA (Medicina General - Bloques de 15m - 14 de Octubre 2026) ---
+-- --- DERMATOLOGÍA (Dr. Castillo - 26 y 27 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(18, 4, '2026-10-14', '08:00:00', '08:15:00', 15, 'DISPONIBLE', false),
-(19, 4, '2026-10-14', '08:15:00', '08:30:00', 15, 'OCUPADO', false),
-(20, 4, '2026-10-14', '08:30:00', '08:45:00', 15, 'DISPONIBLE', false),
-(21, 4, '2026-10-14', '08:45:00', '09:00:00', 15, 'DISPONIBLE', false)
+(123, 5, '2026-10-26', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
+(124, 5, '2026-10-26', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
+(125, 5, '2026-10-27', '10:00:00', '10:30:00', 30, 'OCUPADO', false),
+(126, 5, '2026-10-27', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DR. CASTILLO (Dermatología - 15 de Octubre 2026) ---
+-- --- OFTALMOLOGÍA (Dr. Vargas - 27 y 28 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(22, 5, '2026-10-15', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
-(23, 5, '2026-10-15', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
-(24, 5, '2026-10-15', '10:00:00', '10:30:00', 30, 'OCUPADO', false)
+(127, 6, '2026-10-27', '11:00:00', '11:30:00', 30, 'DISPONIBLE', false),
+(128, 6, '2026-10-27', '11:30:00', '12:00:00', 30, 'DISPONIBLE', false),
+(129, 6, '2026-10-28', '16:00:00', '16:30:00', 30, 'DISPONIBLE', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DR. VARGAS (Oftalmología - 16 de Octubre 2026) ---
+-- --- TRAUMATOLOGÍA (Dra. Salazar - 28 y 29 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(25, 6, '2026-10-16', '11:00:00', '11:30:00', 30, 'DISPONIBLE', false),
-(26, 6, '2026-10-16', '11:30:00', '12:00:00', 30, 'DISPONIBLE', false)
+(130, 7, '2026-10-28', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
+(131, 7, '2026-10-28', '15:30:00', '16:00:00', 30, 'OCUPADO', false),
+(132, 7, '2026-10-29', '16:00:00', '16:30:00', 30, 'DISPONIBLE', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DRA. SALAZAR (Traumatología - 16 de Octubre 2026) ---
+-- --- GINECOLOGÍA (Dra. Flores - 29 y 30 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(27, 7, '2026-10-16', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
-(28, 7, '2026-10-16', '15:30:00', '16:00:00', 30, 'OCUPADO', false)
+(133, 8, '2026-10-29', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
+(134, 8, '2026-10-29', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
+(135, 8, '2026-10-30', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DRA. FLORES (Ginecología - 17 de Octubre 2026) ---
+-- --- ODONTOLOGÍA (Dr. Navarro - 30 y 31 de Octubre) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(29, 8, '2026-10-17', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
-(30, 8, '2026-10-17', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false)
+(136, 9, '2026-10-30', '10:00:00', '10:45:00', 45, 'DISPONIBLE', false),
+(137, 9, '2026-10-30', '10:45:00', '11:30:00', 45, 'OCUPADO', false),
+(138, 9, '2026-10-31', '09:00:00', '09:45:00', 45, 'DISPONIBLE', false)
 ON CONFLICT (id) DO NOTHING;
 
--- --- DR. NAVARRO (Odontología - 17 de Octubre 2026) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(31, 9, '2026-10-17', '10:00:00', '10:45:00', 45, 'DISPONIBLE', false),
-(32, 9, '2026-10-17', '10:45:00', '11:30:00', 45, 'OCUPADO', false)
-ON CONFLICT (id) DO NOTHING;
+-- =====================================================
+-- 4. SINCRONIZACIÓN OBLIGATORIA DE SECUENCIAS
+-- =====================================================
+-- Evita el error 'duplicate key value violates unique constraint' al crear registros nuevos desde la app
+SELECT setval(pg_get_serial_sequence('especialidades', 'id'), COALESCE(MAX(id), 1)) FROM especialidades;
+SELECT setval(pg_get_serial_sequence('medicos', 'id'), COALESCE(MAX(id), 1)) FROM medicos;
+SELECT setval(pg_get_serial_sequence('turnos', 'id'), COALESCE(MAX(id), 1)) FROM turnos;

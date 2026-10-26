@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - SaludCitas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F4F6F6] text-gray-800 min-h-screen">
+
+    <!-- ================= BARRA SUPERIOR ================= -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <!-- Logo + Nombre de la Clínica + Breadcrumb -->
+            <div class="flex items-center gap-3">
+                <a th:href="@{/citas/agendar}" class="flex items-center gap-2.5 group">
+                    <img class="w-8 h-8 object-contain transition-transform group-hover:scale-105" 
+                         th:src="@{/images/Logo.svg}" 
+                         alt="Logo SaludCitas" />
+                    <span class="text-xl font-bold text-[#1E5646] tracking-tight">SaludCitas</span>
+                </a>
+                <span class="text-gray-300 select-none">/</span>
+                <span class="text-sm font-medium text-gray-500">Mi Perfil</span>
+            </div>
+            
+            <!-- Botón Volver -->
+            <a th:href="@{/citas/agendar}" 
+               class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 hover:text-[#1E5646] transition shadow-xs">
+                <svg class="w-4 h-4 text-[#2D735C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Volver al panel</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- ================= CONTENIDO PRINCIPAL ================= -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+
+        <!-- Notificaciones de Alerta / Éxito -->
+        <div th:if="${param.exito}" 
+             class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 shadow-xs">
+            <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <p class="font-medium">Tu contraseña se actualizó correctamente.</p>
+        </div>
+
+        <div th:if="${param.error != null and param.error[0] == 'clave_invalida'}" 
+             class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-3 shadow-xs">
+            <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0 text-red-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <p class="font-medium">La contraseña actual ingresada es incorrecta.</p>
+        </div>
+
+        <div th:if="${param.error != null and param.error[0] == 'coincidencia'}" 
+             class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-3 shadow-xs">
+            <div class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <p class="font-medium">La nueva contraseña y su confirmación no coinciden.</p>
+        </div>
+
+        <div th:if="${param.error != null and param.error[0] == 'longitud'}" 
+             class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-3 shadow-xs">
+            <div class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="font-medium">La nueva contraseña debe tener al menos 6 caracteres.</p>
+        </div>
+
+        <!-- Grid Principal -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Columna Izquierda: Tarjeta Perfil -->
+            <div class="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-xs flex flex-col items-center text-center h-fit">
+                <!-- Avatar Circular -->
+                <div class="w-20 h-20 rounded-full bg-[#1E5646] text-white flex items-center justify-center font-bold text-2xl shadow-sm mb-4"
+                     th:text="${#strings.substring(paciente.nombres, 0, 1)}">
+                    J
+                </div>
+
+                <h2 class="text-base font-bold text-gray-900 leading-tight" 
+                    th:text="${paciente.nombres + ' ' + paciente.apellidos}">
+                    Juan Pérez
+                </h2>
+                <p class="text-xs text-gray-500 mt-1 truncate max-w-full" th:text="${paciente.correo}">
+                    correo@ejemplo.com
+                </p>
+
+                <div class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-[#DCEEEA] text-[#1E5646] text-xs font-semibold rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-[#2D735C]"></span>
+                    Paciente Activo
+                </div>
+
+                <div class="w-full border-t border-gray-100 my-5"></div>
+
+                <div class="w-full flex items-center justify-between text-xs text-gray-500 px-2">
+                    <span>Documento</span>
+                    <span class="font-semibold text-gray-800" th:text="${paciente.dni}">12345678</span>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Información y Cambio de Contraseña -->
+            <div class="md:col-span-2 space-y-6">
+
+                <!-- 1. Datos Personales Fijos -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs">
+                    <div class="flex items-center justify-between pb-4 mb-6 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Información Personal</h3>
+                            <p class="text-xs text-gray-500">Datos registrados en tu ficha médica institucional.</p>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-200/60 font-medium">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            Solo lectura
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">Nombres</label>
+                            <input type="text" th:value="${paciente.nombres}" readonly 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-gray-50/80 border border-gray-200 text-gray-700 text-sm font-medium cursor-not-allowed select-none focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">Apellidos</label>
+                            <input type="text" th:value="${paciente.apellidos}" readonly 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-gray-50/80 border border-gray-200 text-gray-700 text-sm font-medium cursor-not-allowed select-none focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">DNI / Documento de Identidad</label>
+                            <input type="text" th:value="${paciente.dni}" readonly 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-gray-50/80 border border-gray-200 text-gray-700 text-sm font-medium cursor-not-allowed select-none focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">Correo Electrónico</label>
+                            <input type="email" th:value="${paciente.correo}" readonly 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-gray-50/80 border border-gray-200 text-gray-700 text-sm font-medium cursor-not-allowed select-none focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Seguridad / Cambiar Contraseña -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs">
+                    <div class="pb-4 mb-6 border-b border-gray-100">
+                        <h3 class="text-base font-bold text-gray-900">Seguridad de la Cuenta</h3>
+                        <p class="text-xs text-gray-500">Ingresa tu contraseña actual para autorizar la actualización de tu clave.</p>
+                    </div>
+
+                    <form th:action="@{/perfil/cambiar-password}" method="post" class="space-y-4">
+                        
+                        <!-- Contraseña Actual -->
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Contraseña Actual</label>
+                            <div class="relative">
+                                <input type="password" id="passActual" name="passwordActual" required 
+                                       placeholder="••••••••"
+                                       class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] focus:border-transparent outline-none transition">
+                                <button type="button" onclick="togglePass('passActual')" 
+                                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Nuevas Contraseñas -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Nueva Contraseña</label>
+                                <div class="relative">
+                                    <input type="password" id="passNueva" name="nuevaPassword" required minlength="6" 
+                                           placeholder="Mínimo 6 caracteres"
+                                           class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] focus:border-transparent outline-none transition">
+                                    <button type="button" onclick="togglePass('passNueva')" 
+                                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Confirmar Nueva Contraseña</label>
+                                <div class="relative">
+                                    <input type="password" id="passConfirm" name="confirmPassword" required minlength="6" 
+                                           placeholder="Repite la contraseña"
+                                           class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] focus:border-transparent outline-none transition">
+                                    <button type="button" onclick="togglePass('passConfirm')" 
+                                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón Enviar -->
+                        <div class="pt-4 flex justify-end">
+                            <button type="submit" 
+                                    class="px-6 py-2.5 rounded-xl bg-[#2D735C] hover:bg-[#1E5646] text-white font-medium text-sm transition shadow-sm hover:shadow">
+                                Actualizar Contraseña
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Script para alternar visibilidad de contraseña -->
+    <script>
+        function togglePass(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.type = input.type === 'password' ? 'text' : 'password';
+            }
+        }
+    </script>
+
+</body>
+</html>

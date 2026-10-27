@@ -84,8 +84,7 @@ public class CitaController {
             HttpSession session,
             Model model) {
 
-        Paciente paciente
-                = (Paciente) session.getAttribute("usuarioLogueado");
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
 
         if (paciente == null) {
             return "redirect:/login";
@@ -95,12 +94,35 @@ public class CitaController {
             return "redirect:/citas/agendar?error=seleccione_turno";
         }
 
-        try {
-            Cita cita
-                    = citaService.iniciarProcesoEmision(turnoId, paciente);
+        // 1. Verificamos que el turno exista y siga disponible
+        Turno turno = turnoRepository.findById(turnoId).orElse(null);
+        if (turno == null || !"DISPONIBLE".equals(turno.getEstado())) {
+            return "redirect:/citas/agendar?error=ocupado";
+        }
 
-            model.addAttribute("cita", cita);
-            return "confirmar-reserva";
+        // 2. NO creamos la cita todavía. Solo enviamos el turno, el paciente y el monto a la vista.
+        model.addAttribute("turno", turno);
+        model.addAttribute("paciente", paciente);
+        model.addAttribute("monto", turno.getMedico().getEspecialidad().getPrecioConsulta());
+
+        return "confirmar-reserva";
+    }
+
+    @PostMapping("/iniciar-pago")
+    public String iniciarPago(
+            @RequestParam Long turnoId,
+            HttpSession session) {
+
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+
+        if (paciente == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            // RF-02 / HU-01: Aquí se bloquea bajo "EN_PROCESO" y arranca el temporizador
+            Cita cita = citaService.iniciarProcesoEmision(turnoId, paciente);
+            return "redirect:/citas/pago/" + cita.getId();
 
         } catch (IllegalStateException ex) {
             return "redirect:/citas/agendar?error=ocupado";

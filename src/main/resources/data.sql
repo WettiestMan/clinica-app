@@ -6,19 +6,20 @@ ALTER TABLE citas DROP CONSTRAINT IF EXISTS uk_bbwh4ytnwechvo8kjw8p6pwdb;
 -- =====================================================
 -- 1. ESPECIALIDADES
 -- =====================================================
-INSERT INTO especialidades (id, nombre, duracion_minutos_default) VALUES 
-(1, 'Cardiologia', 30),
-(2, 'Pediatria', 30),
-(3, 'Medicina General', 15),
-(4, 'Dermatologia', 30),
-(5, 'Cirugia General', 120),
-(6, 'Oftalmologia', 30),
-(7, 'Traumatologia', 30),
-(8, 'Ginecologia', 30),
-(9, 'Odontologia', 45)
+INSERT INTO especialidades (id, nombre, duracion_minutos_default, precio_consulta) VALUES 
+(1, 'Cardiologia', 30, 80.00),
+(2, 'Pediatria', 30, 60.00),
+(3, 'Medicina General', 15, 40.00),
+(4, 'Dermatologia', 30, 75.00),
+(5, 'Cirugia General', 120, 100.00),
+(6, 'Oftalmologia', 30, 70.00),
+(7, 'Traumatologia', 30, 85.00),
+(8, 'Ginecologia', 30, 75.00),
+(9, 'Odontologia', 45, 50.00)
 ON CONFLICT (id) DO UPDATE SET 
     nombre = EXCLUDED.nombre, 
-    duracion_minutos_default = EXCLUDED.duracion_minutos_default;
+    duracion_minutos_default = EXCLUDED.duracion_minutos_default,
+    precio_consulta = EXCLUDED.precio_consulta;
 
 -- =====================================================
 -- 2. MÉDICOS

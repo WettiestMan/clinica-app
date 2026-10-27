@@ -54,7 +54,7 @@ public class CitaService {
         turno.setEstado("EN_PROCESO");
         turnoRepository.save(turno);
 
-        BigDecimal costoConsulta = (turno.getDuracionMinutos() <= 15) ? new BigDecimal("45.00") : new BigDecimal("70.00");
+        BigDecimal costoConsulta = turno.getMedico().getEspecialidad().getPrecioConsulta();
 
         Cita cita = new Cita();
         cita.setPaciente(paciente);

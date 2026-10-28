@@ -6,7 +6,8 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "especialidades")
-@Getter @Setter
+@Getter
+@Setter
 public class Especialidad {
 
     @Id
@@ -18,4 +19,15 @@ public class Especialidad {
 
     @Column(nullable = false)
     private Integer duracionMinutosDefault = 30; // 15 rápida, 30 regular, 120 cirugía
+
+    @Column(name = "precio_consulta", precision = 10, scale = 2)
+    private java.math.BigDecimal precioConsulta;
+
+    public java.math.BigDecimal getPrecioConsulta() {
+        return precioConsulta != null ? precioConsulta : new java.math.BigDecimal("70.00");
+    }
+
+    public void setPrecioConsulta(java.math.BigDecimal precioConsulta) {
+        this.precioConsulta = precioConsulta;
+    }
 }

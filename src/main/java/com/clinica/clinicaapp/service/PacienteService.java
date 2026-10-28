@@ -49,4 +49,23 @@ public class PacienteService {
         paciente.setPassword(passwordEncoder.encode(nuevaPassword));
         pacienteRepository.save(paciente);
     }
+
+    public boolean cambiarPasswordConValidacion(String correo, String passwordActual, String nuevaPassword) {
+    Optional<Paciente> pacienteOpt = pacienteRepository.findByCorreo(correo);
+    if (pacienteOpt.isEmpty()) {
+        return false;
+    }
+    
+    Paciente paciente = pacienteOpt.get();
+    
+    // Verificar que la contraseña actual coincida con el hash en la BD
+    if (!passwordEncoder.matches(passwordActual, paciente.getPassword())) {
+        return false;
+    }
+    
+    // Hashear y guardar la nueva contraseña
+    paciente.setPassword(passwordEncoder.encode(nuevaPassword));
+    pacienteRepository.save(paciente);
+    return true;
+}
 }

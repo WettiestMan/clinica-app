@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Médico - Citas Asignadas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Poppins', sans-serif; }</style>
+</head>
+<body class="bg-[#F4F6F6] text-gray-800 min-h-screen flex">
+
+    <!-- SIDEBAR COMPONENTE -->
+    <div th:replace="~{fragments/sidebar-personal :: sidebar(rol='MEDICO', activo='citas')}"></div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-1 overflow-y-auto px-10 py-8">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Barra superior: Título a la izquierda y Perfil/Avatar a la derecha -->
+            <div class="flex items-center justify-between pb-6 mb-6 border-b border-gray-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Agenda de Consultas</h2>
+                    <p class="text-sm text-gray-500">Pacientes programados en tus turnos publicados.</p>
+                </div>
+
+                <!-- Perfil del Médico en Sesión (Avatar + Datos) -->
+                <div class="flex items-center gap-3.5 bg-white px-4 py-2.5 rounded-2xl border border-gray-200/80 shadow-xs">
+                    <!-- Avatar Circular con Iniciales -->
+                    <div class="w-10 h-10 rounded-full bg-[#DCEEEA] text-[#1E5646] font-bold text-sm flex items-center justify-center border border-[#CFE3DF]">
+                        <span th:text="${#strings.substring(medico.nombres, 0, 1) + #strings.substring(medico.apellidos, 0, 1)}">DR</span>
+                    </div>
+
+                    <!-- Datos Clínicos -->
+                    <div class="text-left">
+                        <span class="block text-sm font-semibold text-gray-900 leading-tight" 
+                              th:text="${medico.nombres + ' ' + medico.apellidos}">
+                            Dr. Tello
+                        </span>
+                        <span class="text-xs font-medium text-[#2D735C]" 
+                              th:text="${medico.especialidad.nombre}">
+                            Cardiología
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Citas Asignadas -->
+            <div class="bg-white rounded-3xl border border-gray-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-900 text-base">Pacientes Programados</h3>
+                    <span class="px-3 py-1 bg-emerald-50 text-[#1E5646] text-xs font-semibold rounded-full border border-emerald-100" 
+                          th:text="${citas.size() + ' cita(s) confirmada(s)'}">
+                        0 citas
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                <th class="py-3 px-6 font-semibold">Código Cita</th>
+                                <th class="py-3 px-6 font-semibold">Fecha y Hora</th>
+                                <th class="py-3 px-6 font-semibold">Paciente</th>
+                                <th class="py-3 px-6 font-semibold">DNI</th>
+                                <th class="py-3 px-6 font-semibold">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-sm">
+                            <tr th:each="c : ${citas}" class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 font-semibold text-zinc-900" th:text="${c.codigoCita}">CIT-2026-XXXX</td>
+                                <td class="py-4 px-6 text-[#2D735C] font-medium" 
+                                    th:text="${#temporals.format(c.turno.fecha, 'dd/MM/yyyy') + ' · ' + #temporals.format(c.turno.horaInicio, 'HH:mm')}">
+                                    24/10/2026 08:30
+                                </td>
+                                <td class="py-4 px-6 font-medium text-gray-800" th:text="${c.paciente.nombres + ' ' + c.paciente.apellidos}">Juan Pérez</td>
+                                <td class="py-4 px-6 text-gray-500" th:text="${c.paciente.dni}">12345678</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800" 
+                                          th:text="${c.estado}">
+                                        CONFIRMADA
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(citas)}">
+                                <td colspan="5" class="py-10 text-center text-gray-400 text-sm">
+                                    No tienes citas agendadas registradas hasta el momento.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

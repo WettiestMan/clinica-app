@@ -1,9 +1,11 @@
 package com.clinica.clinicaapp.controller;
 
+import com.clinica.clinicaapp.entity.Medico;
 import com.clinica.clinicaapp.entity.Paciente;
 import com.clinica.clinicaapp.entity.TokenRecuperacion;
 import com.clinica.clinicaapp.service.PacienteService;
 import com.clinica.clinicaapp.service.EmailService;
+import com.clinica.clinicaapp.repository.MedicoRepository;
 import com.clinica.clinicaapp.repository.TokenRecuperacionRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -18,13 +20,16 @@ public class AuthController {
     private final PacienteService pacienteService;
     private final EmailService emailService;
     private final TokenRecuperacionRepository tokenRepo;
+    private final MedicoRepository medicoRepository;
 
     public AuthController(PacienteService pacienteService, 
                           EmailService emailService, 
-                          TokenRecuperacionRepository tokenRepo) {
+                          TokenRecuperacionRepository tokenRepo,
+                          MedicoRepository medicoRepository) {
         this.pacienteService = pacienteService;
         this.emailService = emailService;
         this.tokenRepo = tokenRepo;
+        this.medicoRepository = medicoRepository;
     }
 
     @GetMapping("/login")
@@ -42,6 +47,27 @@ public class AuthController {
             // Guardamos el paciente en la sesión HTTP
             session.setAttribute("usuarioLogueado", paciente.get());
             return "redirect:/citas/agendar";
+        }
+
+        // 2. Si no es paciente, verificar si corresponde a un Médico / Jefe Médico
+        Optional<Medico> medicoOpt = medicoRepository.findByCorreo(correo);
+        if (medicoOpt.isPresent()) {
+            Medico medico = medicoOpt.get();
+
+            // Comparación de contraseña (texto plano según data.sql o BCrypt si usas password encoder)
+            if (medico.getPassword() != null && medico.getPassword().equals(password)) {
+                session.setAttribute("usuarioLogueado", medico);
+                
+                // Redirección según rol asistencial
+                if (Boolean.TRUE.equals(medico.getEsJefe())) {
+                    session.setAttribute("rol", "JEFE_MEDICO");
+                    return "redirect:/personal/disponibilidad";
+                } else {
+                    session.setAttribute("rol", "MEDICO");
+                    return "redirect:/personal/mis-citas-asignadas?medicoId=" + medico.getId();
+                }
+      
+            }
         }
         return "redirect:/login?error=credenciales";
     }

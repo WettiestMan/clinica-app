@@ -20,21 +20,21 @@
 
 <body class="bg-[#F4F6F6] h-screen overflow-hidden flex">
 
-    <!-- ================= SIDEBAR IZQUIERDO ================= -->
+    <!-- SIDEBAR IZQUIERDO -->
     <aside th:replace="~{fragments/sidebar :: sidebar('agendar')}"></aside>
 
-    <!-- ================= CONTENEDOR DERECHO (HEADER + CONTENIDO) ================= -->
+    <!-- CONTENEDOR DERECHO -->
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
 
-        <!-- Header superior con avatar del usuario alineado a la derecha -->
+        <!-- Header superior -->
         <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-        <!-- Contenido principal con scroll -->
+        <!-- Contenido principal -->
         <main class="flex-1 overflow-y-auto px-10 pb-10">
             <div class="max-w-4xl mx-auto pb-16">
                 <h2 class="text-3xl font-bold text-black mb-6">Buscar Disponibilidad</h2>
 
-                <!-- Barra de Progreso de Pasos -->
+                <!-- Barra de Pasos -->
                 <div class="grid grid-cols-4 gap-4 mb-6">
                     <div class="flex flex-col gap-1.5">
                         <span class="text-sm font-medium text-black">1 · Buscar</span>
@@ -58,8 +58,9 @@
                 <div class="bg-white rounded-[32px] p-8 shadow-sm space-y-6">
                     <div>
                         <h3 class="text-xl font-semibold text-black">Buscar turnos disponibles</h3>
-                        <p class="text-zinc-500 text-sm mt-1">Selecciona una especialidad y un rango de fechas para
-                            consultar los turnos disponibles.</p>
+                        <p class="text-zinc-500 text-sm mt-1">
+                            Selecciona una especialidad médica para consultar los horarios disponibles.
+                        </p>
                     </div>
 
                     <div th:if="${param.error != null and param.error[0] == 'seleccione_turno'}"
@@ -69,91 +70,128 @@
 
                     <!-- Filtros -->
                     <form th:action="@{/citas/agendar}" method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <!-- Selector de Especialidad -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Especialidad médica</label>
                             <select name="especialidadId" onchange="this.form.submit()"
                                 class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
-                                <option value="" class="text-zinc-350">Selecciona una especialidad</option>
+
+
+                                <option value="" disabled th:selected="${especialidadSeleccionada == null}">
+                                    -- Selecciona una especialidad --
+                                </option>
+
                                 <option th:each="esp : ${especialidades}" th:value="${esp.id}" th:text="${esp.nombre}"
                                     th:selected="${esp.id == especialidadSeleccionada}">
                                 </option>
                             </select>
                         </div>
 
+                        <!-- Fecha Inicial (Deshabilitada si no hay especialidad) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Fecha inicial</label>
                             <input type="date" name="fechaDesde" th:value="${fechaDesde}" onchange="this.form.submit()"
-                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                                th:disabled="${especialidadSeleccionada == null}"
+                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                         </div>
 
+                        <!-- Fecha Final (Deshabilitada si no hay especialidad) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Fecha final</label>
                             <input type="date" name="fechaHasta" th:value="${fechaHasta}" onchange="this.form.submit()"
-                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                                th:disabled="${especialidadSeleccionada == null}"
+                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                         </div>
                     </form>
 
-                    <!-- Leyenda de colores -->
-                    <div class="flex items-center gap-6 pt-1 text-sm font-normal text-zinc-500">
-                        <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-[#529E7F]"></span>
-                            <span>Libre</span>
+                    <!-- ESTADO 1: Antes de seleccionar Especialidad (No se muestra nada de turnos) -->
+                    <div th:if="${especialidadSeleccionada == null}"
+                        class="py-12 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-6">
+                        <div
+                            class="w-12 h-12 rounded-full bg-[#DCEEEA] flex items-center justify-center text-[#1E5646] mb-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                </path>
+                            </svg>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-[#F4A79D]"></span>
-                            <span>Ocupado</span>
-                        </div>
+                        <h4 class="text-base font-semibold text-gray-800">Comienza eligiendo una especialidad médica
+                        </h4>
+                        <p class="text-xs text-gray-500 max-w-sm mt-1">
+                            Selecciona una especialidad en el menú superior para ver la disponibilidad horaria de
+                            nuestros médicos.
+                        </p>
                     </div>
 
-                    <!-- Formulario de reserva -->
-                    <form th:action="@{/citas/confirmar}" method="post" id="formReserva">
-                        <div class="space-y-4">
-                            <div th:if="${turnosPorMedico.empty}" class="text-zinc-500 text-sm py-4">
-                                No se encontraron turnos en las fechas o especialidad seleccionada.
-                            </div>
+                    <!-- ESTADO 2: Especialidad ya seleccionada -->
+                    <div th:if="${especialidadSeleccionada != null}" class="space-y-6">
 
-                            <div th:each="entry : ${turnosPorMedico}"
-                                class="bg-[#F8F9FA] rounded-2xl p-4 border border-zinc-100">
-                                <div class="flex justify-between items-center mb-3">
-                                    <span class="font-normal text-black text-base"
-                                        th:text="${entry.key.nombres + ' ' + entry.key.apellidos}"></span>
-                                    <span class="text-zinc-500 text-xs"
-                                        th:text="${entry.key.especialidad.nombre}"></span>
+                        <!-- Leyenda de colores -->
+                        <div class="flex items-center gap-6 pt-1 text-sm font-normal text-zinc-500">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-[#529E7F]"></span>
+                                <span>Libre</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-[#F4A79D]"></span>
+                                <span>Ocupado</span>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de reserva -->
+                        <form th:action="@{/citas/confirmar}" method="post" id="formReserva">
+                            <div class="space-y-4">
+
+                                <!-- Mensaje si la especialidad no tiene cupos en ese rango -->
+                                <div th:if="${turnosPorMedico.empty}"
+                                    class="bg-gray-50 border border-gray-100 rounded-2xl p-8 text-center text-zinc-500 text-sm">
+                                    No se encontraron turnos disponibles para esta especialidad en el rango de fechas
+                                    seleccionado.
                                 </div>
 
-                                <div class="flex flex-wrap gap-3 items-center">
-                                    <th:block th:each="turno : ${entry.value}">
-                                        <label th:if="${turno.estado == 'DISPONIBLE'}"
-                                            class="cursor-pointer inline-flex">
-                                            <input type="radio" name="turnoId" th:value="${turno.id}"
-                                                class="peer hidden" required>
-                                            <span
-                                                class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#529E7F] text-white inline-flex items-center justify-center select-none peer-checked:bg-[#1E5646] peer-checked:text-white peer-checked:ring-4 peer-checked:ring-[#A2D9CE] peer-checked:font-bold peer-checked:scale-105 transform hover:opacity-90 transition duration-150 shadow-sm">
+                                <!-- Bloques de médicos y turnos -->
+                                <div th:each="entry : ${turnosPorMedico}"
+                                    class="bg-[#F8F9FA] rounded-2xl p-4 border border-zinc-100">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="font-normal text-black text-base"
+                                            th:text="${entry.key.nombres + ' ' + entry.key.apellidos}"></span>
+                                        <span class="text-zinc-500 text-xs"
+                                            th:text="${entry.key.especialidad.nombre}"></span>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-3 items-center">
+                                        <th:block th:each="turno : ${entry.value}">
+                                            <label th:if="${turno.estado == 'DISPONIBLE'}"
+                                                class="cursor-pointer inline-flex">
+                                                <input type="radio" name="turnoId" th:value="${turno.id}"
+                                                    class="peer hidden" required>
+                                                <span
+                                                    class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#529E7F] text-white inline-flex items-center justify-center select-none peer-checked:bg-[#1E5646] peer-checked:text-white peer-checked:ring-4 peer-checked:ring-[#A2D9CE] peer-checked:font-bold peer-checked:scale-105 transform hover:opacity-90 transition duration-150 shadow-sm">
+                                                    <span
+                                                        th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
+                                                </span>
+                                            </label>
+
+                                            <span th:if="${turno.estado == 'OCUPADO' or turno.estado == 'EN_PROCESO'}"
+                                                class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90 inline-flex items-center justify-center select-none shadow-sm"
+                                                title="Horario ocupado">
                                                 <span
                                                     th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
                                             </span>
-                                        </label>
-
-                                        <span th:if="${turno.estado == 'OCUPADO' or turno.estado == 'EN_PROCESO'}"
-                                            class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90 inline-flex items-center justify-center select-none shadow-sm"
-                                            title="Horario ocupado">
-                                            <span
-                                                th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
-                                        </span>
-                                    </th:block>
+                                        </th:block>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="pt-8">
-                            <button type="submit"
-                                id="btnContinuarReserva"
-                                disabled
-                                class="px-8 py-3 bg-gray-300 text-gray-500 font-medium text-base rounded-xl transition shadow-sm cursor-not-allowed">
-                                Continuar con la reserva
-                            </button>
-                        </div>
-                    </form>
+                            <div class="pt-8" th:if="${!turnosPorMedico.empty}">
+                                <button type="submit" id="btnContinuarReserva" disabled
+                                    class="px-8 py-3 bg-gray-300 text-gray-500 font-medium text-base rounded-xl transition shadow-sm cursor-not-allowed">
+                                    Continuar con la reserva
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
                 </div>
             </div>
         </main>
@@ -164,40 +202,21 @@
         const turnos = document.querySelectorAll('input[name="turnoId"]');
 
         function actualizarBoton() {
-            const turnoSeleccionado = document.querySelector(
-                'input[name="turnoId"]:checked'
-            );
+            if (!btnContinuar) return;
+            const turnoSeleccionado = document.querySelector('input[name="turnoId"]:checked');
 
             if (turnoSeleccionado) {
                 btnContinuar.disabled = false;
-                btnContinuar.classList.remove(
-                    'bg-gray-300',
-                    'text-gray-500',
-                    'cursor-not-allowed'
-                );
-                btnContinuar.classList.add(
-                    'bg-[#2D735C]',
-                    'text-white',
-                    'hover:bg-[#235b49]',
-                    'cursor-pointer'
-                );
+                btnContinuar.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                btnContinuar.classList.add('bg-[#2D735C]', 'text-white', 'hover:bg-[#235b49]', 'cursor-pointer');
             } else {
                 btnContinuar.disabled = true;
-                btnContinuar.classList.remove(
-                    'bg-[#2D735C]',
-                    'text-white',
-                    'hover:bg-[#235b49]',
-                    'cursor-pointer'
-                );
-                btnContinuar.classList.add(
-                    'bg-gray-300',
-                    'text-gray-500',
-                    'cursor-not-allowed'
-                );
+                btnContinuar.classList.remove('bg-[#2D735C]', 'text-white', 'hover:bg-[#235b49]', 'cursor-pointer');
+                btnContinuar.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
             }
         }
 
-        turnos.forEach(function(turno) {
+        turnos.forEach(function (turno) {
             turno.addEventListener('change', actualizarBoton);
         });
 

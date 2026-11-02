@@ -101,12 +101,17 @@ public class CitaService {
         cita.setMetodoPago(metodoPago);
         cita.setNumeroOperacion("SIM-" + UUID.randomUUID());
         cita.setCodigo(cita.getCodigoVisible());
+        
+        
         ComprobantePago pago = new ComprobantePago();
         pago.setCita(cita);
         pago.setNumero(cita.getNumeroOperacion());
         pago.setEstado("APROBADO");
         pago.setImporte(cita.getMonto());
         pago.setMoneda("PEN");
+        pago.setFechaEmision(LocalDateTime.now());
+        pago.setSerieCorrelativo("B001-" + String.format(java.util.Locale.ROOT, "%06d", cita.getId()));
+        
         pagos.save(pago);
 
         // RF-08: Transición definitiva del turno

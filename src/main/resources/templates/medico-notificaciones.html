@@ -1,0 +1,85 @@
+<html lang="es" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SaludCitas · Notificaciones de disponibilidad</title><style>body{
+                margin:0;
+                background:#f4f6f6;
+                color:#183e36;
+                font:16px system-ui
+            }
+            header{
+                background:#dceeea;
+                padding:24px;
+                display:flex;
+                gap:24px;
+                align-items:center;
+                flex-wrap:wrap
+            }
+            main{
+                max-width:1040px;
+                margin:32px auto;
+                padding:0 20px
+            }
+            section{
+                background:white;
+                border-radius:20px;
+                padding:24px;
+                margin:20px 0
+            }
+            form.grid{
+                display:grid;
+                grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+                gap:16px
+            }
+            label{
+                display:flex;
+                flex-direction:column;
+                gap:8px
+            }
+            input,select,button{
+                font:inherit;
+                border:1px solid #b9cec8;
+                border-radius:8px;
+                padding:10px
+            }
+            button{
+                background:#2d735c;
+                color:white;
+                cursor:pointer
+            }
+            a{
+                color:#225b4b
+            }
+            table{
+                border-collapse:collapse;
+                width:100%
+            }
+            td,th{
+                text-align:left;
+                padding:14px;
+                border-bottom:1px solid #e4eeeb
+            }
+            .error{
+                color:#a32b24
+            }
+            .ok{
+                color:#24664d
+            }
+            small{
+                display:block;
+                color:#536b65
+            }
+            h1{
+                font-size:26px
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <b>SaludCitas</b>
+            <a th:href="@{/medico/agenda}">Citas</a>
+            <a th:href="@{/medico/turnos}">Mis turnos</a>
+            <a th:href="@{/medico/notificaciones}">Notificaciones</a>
+            <form th:action="@{/logout}" method="post">
+                <button>Cerrar sesión</button>
+            </form>
+        </header>
+        <main>
+            <h1>Notificaciones de disponibilidad</h1><section><p th:if="${#lists.isEmpty(avisos)}">No tienes notificaciones.</p><article th:each="n:${avisos}"><h3 th:text="${n.mensaje}"></h3><p th:text="${#temporals.format(n.creada,'dd/MM/yyyy HH:mm')}"></p><small th:if="${n.leida}">Leída</small><form th:unless="${n.leida}" th:action="@{/medico/notificaciones/{id}/leer(id=${n.id})}" method="post"><button>Marcar como leída</button></form><hr></article><small>Se muestran las 50 notificaciones más recientes. Los turnos permanecen en tu agenda.</small></section></main></body></html>

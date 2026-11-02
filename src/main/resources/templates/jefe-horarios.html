@@ -1,0 +1,88 @@
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>SaludCitas · Gestión del jefe médico</title>
+        <style>
+            body{
+                margin:0;
+                background:#f4f6f6;
+                color:#183e36;
+                font:16px system-ui
+            }
+            header{
+                background:#dceeea;
+                padding:24px;
+                display:flex;
+                gap:24px;
+                align-items:center;
+                flex-wrap:wrap
+            }
+            main{
+                max-width:1040px;
+                margin:32px auto;
+                padding:0 20px
+            }
+            section{
+                background:white;
+                border-radius:20px;
+                padding:24px;
+                margin:20px 0
+            }
+            form.grid{
+                display:grid;
+                grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+                gap:16px
+            }
+            label{
+                display:flex;
+                flex-direction:column;
+                gap:8px
+            }
+            input,select,button{
+                font:inherit;
+                border:1px solid #b9cec8;
+                border-radius:8px;
+                padding:10px
+            }
+            button{
+                background:#2d735c;
+                color:white;
+                cursor:pointer
+            }
+            a{
+                color:#225b4b
+            }
+            table{
+                border-collapse:collapse;
+                width:100%
+            }
+            td,th{
+                text-align:left;
+                padding:14px;
+                border-bottom:1px solid #e4eeeb
+            }
+            .error{
+                color:#a32b24
+            }
+            .ok{
+                color:#24664d
+            }
+            small{
+                display:block;
+                color:#536b65
+            }
+            h1{
+                font-size:26px
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <b>SaludCitas</b>
+            <a th:href="@{/jefe/horarios}">Gestión médica</a>
+            <form th:action="@{/logout}" method="post"><button>Cerrar sesión</button></form></header><main><h1>Gestión del jefe médico</h1><p class="ok" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" th:if="${error}" th:text="${error}"></p>
+            <section><h2>1. Crear acceso de médico</h2><p>Puedes vincular una cuenta a un médico existente o registrar uno nuevo. Para un médico existente se conservan sus nombres, especialidad y citas.</p>
+                <form class="grid" th:action="@{/jefe/medicos}" method="post"><label>Médico existente (opcional)<select name="medicoId"><option value="">Selecciona un médico</option><option th:each="m:${medicos}" th:value="${m.id}" th:text="${m.nombres+' '+m.apellidos+' · '+m.especialidad.nombre}"></option></select></label>
+                    <label>Nombres (médico nuevo)<input name="nombres" maxlength="100"></label><label>Apellidos (médico nuevo)<input name="apellidos" maxlength="100"></label><label>Especialidad (médico nuevo)<select name="especialidadId"><option value="">Selecciona especialidad</option><option th:each="e:${especialidades}" th:value="${e.id}" th:text="${e.nombre}"></option></select></label>
+                    <label>Correo de acceso<input type="email" name="correo" required maxlength="254"></label><label>Contraseña inicial<input type="password" name="password" required minlength="12" maxlength="72" autocomplete="new-password"></label><button>Crear cuenta médica</button></form></section>
+            <section><h2>2. Asignar disponibilidad</h2><p>Los turnos se generan por intervalos completos. No se permiten cruces ni fechas pasadas.</p><form class="grid" th:action="@{/jefe/horarios}" method="post"><label>Médico y especialidad<select name="medicoId" required><option value="">Selecciona un médico</option><option th:each="m:${medicos}" th:value="${m.id}" th:text="${m.nombres+' '+m.apellidos+' · '+m.especialidad.nombre}"></option></select></label><label>Fecha<input type="date" name="fecha" required></label><label>Hora inicial<input type="time" name="inicio" required></label><label>Hora final<input type="time" name="fin" required></label><label>Minutos por cita<input type="number" name="minutos" value="30" min="5" max="240" required></label><button>Asignar y notificar</button></form></section></main></body></html>

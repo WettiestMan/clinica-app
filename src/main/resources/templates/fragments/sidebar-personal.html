@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <!-- Fragmento parametrizado: se pasa 'rol' ('JEFE' o 'MEDICO') y 'activo' ('disponibilidad' o 'citas') -->
+    <aside th:fragment="sidebar(rol, activo)" 
+           class="w-64 bg-[#DCEEEA] flex flex-col justify-between h-screen border-r border-[#CFE3DF] flex-shrink-0">
+        <div>
+            <!-- Cabecera de Marca -->
+            <div class="pt-8 pb-10 flex flex-col items-center gap-2">
+                <h1 class="text-3xl font-medium text-zinc-800 tracking-tight">SaludCitas</h1>
+                <!-- Badge Dinámico según Rol -->
+                <span th:if="${rol == 'JEFE'}" 
+                      class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#1E5646] text-white">
+                    Jefatura Médica
+                </span>
+                <span th:if="${rol == 'MEDICO'}" 
+                      class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#2D735C] text-white">
+                    Cuerpo Médico
+                </span>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="space-y-2 px-3">
+                <!-- Enlace Jefatura: Únicamente visible para JEFE -->
+                <a th:if="${rol == 'JEFE'}"
+                   th:href="@{/personal/disponibilidad}" 
+                   th:classappend="${activo == 'disponibilidad'} ? 'bg-[#A2D9CE] text-zinc-800 font-semibold shadow-sm' : 'text-zinc-700 hover:bg-[#cfe5e0] font-medium'"
+                   class="flex items-center gap-4 px-4 py-3 rounded-2xl transition text-base">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Programar Horarios</span>
+                </a>
+
+                <!-- Enlace Médico: Únicamente visible para MEDICO -->
+                <a th:if="${rol == 'MEDICO'}"
+                   th:href="@{/personal/mis-citas-asignadas}" 
+                   th:classappend="${activo == 'citas'} ? 'bg-[#A2D9CE] text-zinc-800 font-semibold shadow-sm' : 'text-zinc-700 hover:bg-[#cfe5e0] font-medium'"
+                   class="flex items-center gap-4 px-4 py-3 rounded-2xl transition text-base">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <span>Citas Asignadas</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Pie institucional: Cerrar sesión seguro -->
+        <div class="p-4 border-t border-[#0F766E]/20">
+            <a th:href="@{/logout}" class="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-red-700 transition font-medium text-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+</body>
+</html>

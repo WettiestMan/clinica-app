@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <!-- FRAGMENTO: navbar superior con modal de confirmación de salida -->
+    <header th:fragment="navbar" class="w-full bg-transparent py-4 px-6 sm:px-8 flex justify-end items-center sticky top-0 z-30">
+        
+        <!-- Menú Desplegable (Dropdown) de Usuario -->
+        <div class="relative" id="userMenuContainer">
+            <button id="userMenuBtn" type="button" 
+                    class="flex items-center gap-2.5 p-1.5 pr-3 rounded-full bg-white hover:bg-gray-50 transition focus:outline-none border border-gray-200/80 shadow-sm">
+                
+                <!-- Avatar circular con la inicial -->
+                <div class="w-8 h-8 rounded-full bg-[#1E5646] text-white flex items-center justify-center font-semibold text-xs shadow-sm"
+                     th:text="${session.usuarioLogueado != null ? #strings.substring(session.usuarioLogueado.nombres, 0, 1) : 'U'}">
+                    U
+                </div>
+
+                <!-- Nombre del paciente -->
+                <span class="text-sm font-medium text-gray-700 hidden sm:inline-block" 
+                      th:text="${session.usuarioLogueado != null ? session.usuarioLogueado.nombres : 'Paciente'}">
+                    Paciente
+                </span>
+
+                <!-- Flecha indicadora -->
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <!-- Menú flotante -->
+            <div id="userDropdown" 
+                 class="hidden absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 transition-all">
+                
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Conectado como</p>
+                    <p class="text-sm font-bold text-gray-800 truncate mt-0.5" 
+                       th:text="${session.usuarioLogueado != null ? (session.usuarioLogueado.nombres + ' ' + session.usuarioLogueado.apellidos) : 'Paciente'}">
+                        Paciente
+                    </p>
+                    <p class="text-xs text-gray-500 truncate mt-0.5" 
+                       th:text="${session.usuarioLogueado != null ? session.usuarioLogueado.correo : 'correo@ejemplo.com'}">
+                        correo@ejemplo.com
+                    </p>
+                </div>
+
+                <div class="py-1">
+                    <a th:href="@{/perfil}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                        <svg class="w-4 h-4 text-[#2D735C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        Mi Perfil
+                    </a>
+                </div>
+
+                <div class="border-t border-gray-100 my-1"></div>
+
+                <!-- Botón que activa el modal (clase abrir-modal-logout) -->
+                <button type="button" class="abrir-modal-logout w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition font-medium">
+                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= MODAL DE CONFIRMACIÓN ================= -->
+        <div id="modalLogout" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-opacity">
+            <div class="bg-white rounded-[28px] max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100 transform transition-all scale-100">
+                
+                <!-- Icono de alerta -->
+                <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 mb-1">¿Cerrar sesión?</h3>
+                <p class="text-sm text-gray-500 mb-6">Tendrás que volver a ingresar tus credenciales para acceder a tus citas.</p>
+
+                <!-- Botones de acción -->
+                <div class="flex items-center gap-3">
+                    <button type="button" id="btnCancelarLogout" 
+                            class="flex-1 py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition">
+                        Cancelar
+                    </button>
+                    <a th:href="@{/logout}" 
+                       class="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition shadow-sm inline-block">
+                        Sí, salir
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Script del dropdown y del modal -->
+        <script>
+            (function() {
+                const btnUser = document.getElementById('userMenuBtn');
+                const menuUser = document.getElementById('userDropdown');
+                const modal = document.getElementById('modalLogout');
+                const btnCancelar = document.getElementById('btnCancelarLogout');
+                const triggers = document.querySelectorAll('.abrir-modal-logout');
+
+                // Abrir / Cerrar Dropdown
+                if (btnUser && menuUser) {
+                    btnUser.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        menuUser.classList.toggle('hidden');
+                    });
+                    document.addEventListener('click', function(e) {
+                        if (!menuUser.contains(e.target) && !btnUser.contains(e.target)) {
+                            menuUser.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Abrir Modal de Confirmación
+                triggers.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (menuUser) menuUser.classList.add('hidden');
+                        modal.classList.remove('hidden');
+                    });
+                });
+
+                // Cerrar Modal
+                if (btnCancelar) {
+                    btnCancelar.addEventListener('click', function() {
+                        modal.classList.add('hidden');
+                    });
+                }
+
+                // Cerrar al hacer clic en el fondo oscuro
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) {
+                            modal.classList.add('hidden');
+                        }
+                    });
+                }
+            })();
+        </script>
+    </header>
+
+</body>
+</html>

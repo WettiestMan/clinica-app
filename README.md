@@ -1,0 +1,1 @@
+Gente, usen secrets.properties.example para crear un archivo de secrets.properties para sus credenciales, no guarden sus credenciales en application.properties.

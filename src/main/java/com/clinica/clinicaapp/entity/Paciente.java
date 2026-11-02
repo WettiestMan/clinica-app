@@ -27,4 +27,13 @@ public class Paciente {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("true")
+    private boolean activo = true;
+
+    @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("0")
+    private long versionAcceso = 0;
+
 }

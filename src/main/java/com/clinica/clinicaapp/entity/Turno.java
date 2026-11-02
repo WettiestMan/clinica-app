@@ -15,6 +15,26 @@ public class Turno {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("true")
+    private boolean activo = true;
+
+    @Version
+    @org.hibernate.annotations.ColumnDefault("0")
+    private long version;
+
+    @Column(length = 300)
+    private String motivoBaja;
+
+
+    @Column(length = 60)
+    private String consultorio;
+
+    @Transient
+    public String getConsultorioVisible() {
+        return consultorio == null || consultorio.isBlank() ? "Por asignar" : consultorio;
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medico_id", nullable = false)
     private Medico medico;

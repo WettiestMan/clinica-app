@@ -9,41 +9,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Poppins', sans-serif; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
 </head>
-<body class="bg-[#F4F6F6] text-gray-800 min-h-screen">
+<body class="sc-layout">
+    <aside th:replace="~{fragments/sidebar :: sidebar('perfil')}"></aside>
+    <div class="sc-workspace">
 
     <!-- ================= BARRA SUPERIOR ================= -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            
-            <!-- Logo + Nombre de la Clínica + Breadcrumb -->
-            <div class="flex items-center gap-3">
-                <a th:href="@{/citas/agendar}" class="flex items-center gap-2.5 group">
-                    <img class="w-8 h-8 object-contain transition-transform group-hover:scale-105" 
-                         th:src="@{/images/Logo.svg}" 
-                         alt="Logo SaludCitas" />
-                    <span class="text-xl font-bold text-[#1E5646] tracking-tight">SaludCitas</span>
-                </a>
-                <span class="text-gray-300 select-none">/</span>
-                <span class="text-sm font-medium text-gray-500">Mi Perfil</span>
-            </div>
-            
-            <!-- Botón Volver -->
-            <a th:href="@{/citas/agendar}" 
-               class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 hover:text-[#1E5646] transition shadow-xs">
-                <svg class="w-4 h-4 text-[#2D735C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                <span>Volver al panel</span>
-            </a>
-        </div>
-    </header>
+    <header th:replace="~{fragments/navbar :: navbar}"></header>
 
     <!-- ================= CONTENIDO PRINCIPAL ================= -->
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+    <main class="sc-content">
+    <div class="sc-container">
 
         <!-- Notificaciones de Alerta / Éxito -->
         <div th:if="${param.exito}" 
@@ -83,7 +60,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
-            <p class="font-medium">La nueva contraseña debe tener al menos 6 caracteres.</p>
+            <p class="font-medium">La nueva contraseña debe tener al menos 8 caracteres.</p>
         </div>
 
         <!-- Grid Principal -->
@@ -191,8 +168,8 @@
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 mb-1.5">Nueva Contraseña</label>
                                 <div class="relative">
-                                    <input type="password" id="passNueva" name="nuevaPassword" required minlength="6" 
-                                           placeholder="Mínimo 6 caracteres"
+                                    <input type="password" id="passNueva" name="nuevaPassword" required minlength="8" 
+                                           placeholder="Mínimo 8 caracteres"
                                            class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] focus:border-transparent outline-none transition">
                                     <button type="button" onclick="togglePass('passNueva')" 
                                             class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
@@ -207,7 +184,7 @@
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 mb-1.5">Confirmar Nueva Contraseña</label>
                                 <div class="relative">
-                                    <input type="password" id="passConfirm" name="confirmPassword" required minlength="6" 
+                                    <input type="password" id="passConfirm" name="confirmPassword" required minlength="8" 
                                            placeholder="Repite la contraseña"
                                            class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] focus:border-transparent outline-none transition">
                                     <button type="button" onclick="togglePass('passConfirm')" 
@@ -233,7 +210,9 @@
 
             </div>
         </div>
+    </div>
     </main>
+    </div>
 
     <!-- Script para alternar visibilidad de contraseña -->
     <script>

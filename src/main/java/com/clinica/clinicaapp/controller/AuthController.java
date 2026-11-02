@@ -28,39 +28,23 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
-
-    @PostMapping("/login")
-    public String procesarLogin(@RequestParam String correo, 
-                                @RequestParam String password, 
-                                HttpSession session, 
-                                Model model) {
-        Optional<Paciente> paciente = pacienteService.autenticar(correo, password);
-        if (paciente.isPresent()) {
-            // Guardamos el paciente en la sesión HTTP
-            session.setAttribute("usuarioLogueado", paciente.get());
-            return "redirect:/citas/agendar";
-        }
-        return "redirect:/login?error=credenciales";
-    }
+    public String login() { return "login"; }
 
     @GetMapping("/registro")
     public String registro() {
         return "registro";
     }
 
-    @PostMapping("/registro")
-    public String procesarRegistro(@ModelAttribute Paciente paciente) {
-        pacienteService.registrarPaciente(paciente);
-        return "redirect:/login?registroExitoso";
+    @InitBinder("paciente")
+    public void limitarRegistro(org.springframework.web.bind.WebDataBinder binder) {
+        binder.setAllowedFields("nombres", "apellidos", "dni", "correo", "password");
     }
 
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate(); // Destruye la sesión del paciente
-        return "redirect:/login?logout";
+    @PostMapping("/registro")
+    public String procesarRegistro(@ModelAttribute("paciente") Paciente paciente) {
+        try { pacienteService.registrarPaciente(paciente); }
+        catch (IllegalArgumentException ex) { return "redirect:/registro?error=datos"; }
+        return "redirect:/login?registroExitoso";
     }
 
     // ================= RECUPERACIÓN DE CONTRASEÑA =================

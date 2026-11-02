@@ -18,6 +18,12 @@ import java.util.UUID;
 @Service
 public class CitaService {
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+    private final java.time.Clock clock;
+    private final com.clinica.clinicaapp.repository.PacienteRepository pacientes;
+    private final com.clinica.clinicaapp.repository.MedicoRepository medicos;
+    private final com.clinica.clinicaapp.repository.UsuarioPersonalRepository usuarios;
     private final TurnoRepository turnoRepository;
     private final CitaRepository citaRepository;
 
@@ -26,7 +32,12 @@ public class CitaService {
     private boolean pagoSimulado;
 
     public CitaService(TurnoRepository turnoRepository, CitaRepository citaRepository,
-                       ComprobantePagoRepository pagos) {
+                       ComprobantePagoRepository pagos, java.time.Clock clock,
+            com.clinica.clinicaapp.repository.PacienteRepository pacientes,
+            com.clinica.clinicaapp.repository.MedicoRepository medicos,
+            com.clinica.clinicaapp.repository.UsuarioPersonalRepository usuarios) {
+        this.pacientes = pacientes; this.medicos = medicos; this.usuarios = usuarios;
+        this.clock = clock;
         this.pagos = pagos;
         this.turnoRepository = turnoRepository;
         this.citaRepository = citaRepository;
@@ -37,18 +48,32 @@ public class CitaService {
      */
    @Transactional
     public Cita iniciarProcesoEmision(Long turnoId, Paciente paciente) {
-        Turno turno = turnoRepository.bloquear(turnoId)
-                .orElseThrow(() -> new IllegalArgumentException("El turno no existe"));
+        return iniciarProcesoEmision(turnoId, paciente, null);
+    }
 
+    @Transactional
+    public Cita iniciarProcesoEmision(Long turnoId, Paciente paciente, String asunto) {
+        String asuntoLimpio = asunto == null ? null : asunto.trim();
+        if (asuntoLimpio != null && asuntoLimpio.length() > 500)
+            throw new IllegalArgumentException("El asunto debe tener como máximo 500 caracteres.");
+        Turno referencia = turnoRepository.findById(turnoId)
+                .orElseThrow(() -> new IllegalArgumentException("El turno no existe"));
+        medicos.bloquear(referencia.getMedico().getId())
+                .orElseThrow(() -> new IllegalArgumentException("El médico no existe"));
+        if (usuarios.existsByMedicoIdAndActivoFalse(referencia.getMedico().getId()))
+            throw new IllegalStateException("El médico no tiene el acceso activo. Selecciona otro horario.");
+        paciente = pacientes.bloquear(paciente.getId())
+                .orElseThrow(() -> new IllegalArgumentException("El paciente no existe"));
+        if (!paciente.isActivo()) throw new IllegalStateException("La cuenta del paciente está de baja.");
+        entityManager.refresh(referencia, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        Turno turno = referencia;
+        if (!turno.isActivo()) throw new IllegalStateException("La disponibilidad fue dada de baja. Selecciona otro turno.");
         if (!"DISPONIBLE".equals(turno.getEstado())) {
             throw new IllegalStateException("El turno ya no se encuentra disponible.");
         }
 
-        // Si quedó un intento previo en EN_PROCESO para este turno, limpiarlo
-        citaRepository.findAll().stream()
-                .filter(c -> c.getTurno().getId().equals(turnoId) && "EN_PROCESO".equals(c.getEstado()))
-                .findFirst()
-                .ifPresent(citaRepository::delete);
+        if (!turno.getFecha().atTime(turno.getHoraInicio()).isAfter(ahora()))
+            throw new IllegalStateException("Selecciona un turno futuro.");
 
         // Bloqueo temporal
         turno.setEstado("EN_PROCESO");
@@ -57,12 +82,15 @@ public class CitaService {
         BigDecimal costoConsulta = turno.getMedico().getEspecialidad().getPrecioConsulta();
 
         Cita cita = new Cita();
+        cita.setAsunto(asuntoLimpio);
         cita.setPaciente(paciente);
         cita.setTurno(turno);
         cita.setEstado("EN_PROCESO");
         cita.setMonto(costoConsulta);
-        cita.setFechaRegistro(LocalDateTime.now());
-        cita.setFechaBloqueoExpiracion(LocalDateTime.now().plusMinutes(15));
+        cita.setFechaRegistro(ahora());
+        LocalDateTime limite=ahora().plusMinutes(15);
+        LocalDateTime inicio=turno.getFecha().atTime(turno.getHoraInicio());
+        cita.setFechaBloqueoExpiracion(inicio.isBefore(limite) ? inicio : limite);
 
         return citaRepository.save(cita);
     }
@@ -74,13 +102,15 @@ public class CitaService {
         Cita cita = citaRepository.bloquear(citaId)
                 .orElseThrow(() -> new IllegalArgumentException("Cita no encontrada"));
 
-        if (!"EN_PROCESO".equals(cita.getEstado())) {
+        if (("CONFIRMADA".equals(cita.getEstado()) || "REPROGRAMADA".equals(cita.getEstado()))
+                && pagos.findByCitaIdAndEstado(citaId,"APROBADO").isPresent()) return cita;
+        if (!"EN_PROCESO".equals(cita.getEstado()))
             throw new IllegalStateException("La cita no está pendiente de emisión.");
-        }
         turnoRepository.bloquear(cita.getTurno().getId())
                 .orElseThrow(() -> new IllegalStateException("Turno no encontrado"));
-        if (cita.getFechaBloqueoExpiracion() == null ||
-                !LocalDateTime.now().isBefore(cita.getFechaBloqueoExpiracion())) {
+        if (!cita.getTurno().getFecha().atTime(cita.getTurno().getHoraInicio()).isAfter(ahora())
+                || cita.getFechaBloqueoExpiracion() == null ||
+                !ahora().isBefore(cita.getFechaBloqueoExpiracion())) {
             liberarTurnoExpirado(cita);
             throw new ReservaExpiradaException("El tiempo de espera de 15 minutos ha expirado. El turno fue liberado.");
         }
@@ -94,7 +124,7 @@ public class CitaService {
         // Pago simulado para la demostración académica; no realiza ningún cobro.
         // RF-05: Generar identificador alfanumérico único
         String sufijo = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        String codigoCita = "CIT-2026-" + sufijo;
+        String codigoCita = "CIT-" + ahora().getYear() + "-" + sufijo;
 
         cita.setCodigoCita(codigoCita);
         cita.setEstado("CONFIRMADA");
@@ -149,9 +179,9 @@ public class CitaService {
         LocalDateTime fechaHoraCita = LocalDateTime.of(turnoActual.getFecha(), turnoActual.getHoraInicio());
 
         // Regla reglamentaria: mínimo 24 horas antes
-        /*if (LocalDateTime.now().plusHours(24).isAfter(fechaHoraCita)) {
+        if (ahora().plusHours(24).isAfter(fechaHoraCita)) {
             throw new IllegalStateException("No se puede reprogramar: la solicitud debe realizarse con un mínimo de 24 horas de anticipación.");
-        }*/
+        }
     }
 
     /**
@@ -181,9 +211,11 @@ public class CitaService {
             throw new IllegalStateException("Selecciona un turno del mismo médico.");
         }
         if (!LocalDateTime.of(nuevoTurno.getFecha(), nuevoTurno.getHoraInicio())
-                .isAfter(LocalDateTime.now())) {
+                .isAfter(ahora())) {
             throw new IllegalStateException("Selecciona un horario futuro.");
         }
+        entityManager.refresh(nuevoTurno);
+        if (!nuevoTurno.isActivo()) throw new IllegalStateException("El turno seleccionado fue dado de baja.");
         if (!"DISPONIBLE".equalsIgnoreCase(nuevoTurno.getEstado())) {
             throw new IllegalStateException("El nuevo horario seleccionado ya no está disponible.");
         }
@@ -205,6 +237,10 @@ public class CitaService {
 
         return citaRepository.save(cita);
     }
+    private LocalDateTime ahora() {
+        return LocalDateTime.now(clock.withZone(java.time.ZoneId.of("America/Lima")));
+    }
+
     private static class ReservaExpiradaException extends IllegalStateException {
         ReservaExpiradaException(String mensaje) { super(mensaje); }
     }

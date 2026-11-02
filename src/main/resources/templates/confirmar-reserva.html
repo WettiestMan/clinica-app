@@ -6,9 +6,15 @@
     <title>SaludCitas - 2 · Confirmar Reserva</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Poppins', sans-serif; }</style>
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
 </head>
-<body class="bg-[#F4F6F6] min-h-screen flex items-center justify-center p-6">
+<body class="sc-layout">
+    <aside th:replace="~{fragments/sidebar :: sidebar('agendar')}"></aside>
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
+        <main class="sc-content">
+            <div class="sc-container sc-container-narrow">
+
     <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-xl w-full border border-gray-100">
         
         <!-- Barra de Progreso -->
@@ -43,6 +49,10 @@
                 <span class="text-zinc-500">Duración:</span>
                 <span class="font-semibold text-black" th:text="${turno.duracionMinutos + ' min'}">30 min</span>
             </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-zinc-500">Consultorio:</span>
+                <span class="font-semibold text-black" th:text="${turno.consultorioVisible}"></span>
+            </div>
             <div class="border-t border-zinc-200 pt-3 flex justify-between items-center text-base">
                 <span class="font-medium text-black">Importe Total:</span>
                 <span class="font-bold text-xl text-[#2D735C]">
@@ -51,6 +61,12 @@
             </div>
         </div>
 
+        <p class="sc-alert sc-alert-error" role="alert" th:if="${errorAsunto}" th:text="${errorAsunto}"></p>
+        <div class="sc-field sc-reserva-asunto">
+            <label class="sc-label" for="asunto">Asunto de la cita (opcional)</label>
+            <textarea class="sc-input" id="asunto" name="asunto" form="formIniciarPago" rows="3" maxlength="500" th:text="${asunto}" aria-describedby="ayudaAsunto" placeholder="Por ejemplo: control de presión arterial"></textarea>
+            <p class="sc-help" id="ayudaAsunto">Describe brevemente el motivo de tu consulta. Máximo 500 caracteres.</p>
+        </div>
         <!-- Acciones: Regresar vs Proceder -->
         <div class="flex items-center gap-4">
             <!-- 1. Regresar: enlace simple GET que no afecta la BD -->
@@ -60,7 +76,7 @@
             </a>
 
             <!-- 2. Proceder al pago: formulario POST que inicia el bloqueo temporal de 15 minutos -->
-            <form th:action="@{/citas/iniciar-pago}" method="post" class="w-1/2">
+            <form id="formIniciarPago" th:action="@{/citas/iniciar-pago}" method="post" class="w-1/2">
                 <input type="hidden" name="turnoId" th:value="${turno.id}">
                 <button type="submit" 
                         class="w-full py-3 bg-[#2D735C] hover:bg-[#235b49] text-white rounded-xl text-center font-medium transition shadow-sm">
@@ -69,6 +85,10 @@
             </form>
         </div>
 
+    </div>
+
+            </div>
+        </main>
     </div>
 </body>
 </html>

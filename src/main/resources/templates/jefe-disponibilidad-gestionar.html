@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Administrar disponibilidad')}"></head>
+<body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
+<aside th:replace="~{fragments/sidebar :: sidebar('horarios')}"></aside>
+<div class="sc-workspace"><header th:replace="~{fragments/navbar :: navbar}"></header>
+<main class="sc-content"><div class="sc-container">
+<h2 class="sc-page-title" th:text="${accion == 'editar' ? 'Editar disponibilidad' : 'Dar de baja disponibilidad'}"></h2>
+<p class="sc-alert sc-alert-error" role="alert" th:if="${error}" th:text="${error}"></p>
+<section class="sc-card">
+<h3 class="sc-card-title" th:text="${turno.medico.nombres + ' ' + turno.medico.apellidos}"></h3>
+<p class="sc-description" th:text="${#temporals.format(turno.fecha,'dd/MM/yyyy') + ' · ' + turno.horaInicio + ' a ' + turno.horaFin + ' · ' + turno.consultorioVisible}"></p>
+<p class="sc-alert sc-alert-warning">Solo se admiten cambios en turnos futuros libres. Si existe una cita activa o en proceso de pago, primero debe resolverse con el flujo de citas.</p>
+<form th:if="${accion == 'editar'}" method="post" th:action="@{/jefe/turnos/{id}/editar(id=${turno.id})}">
+<input type="hidden" name="version" th:value="${turno.version}">
+<div class="sc-grid">
+<div class="sc-field"><label class="sc-label" for="fecha">Fecha</label><input class="sc-input" id="fecha" name="fecha" type="date" required th:value="${turno.fecha}"></div>
+<div class="sc-field"><label class="sc-label" for="inicio">Hora inicial</label><input class="sc-input" id="inicio" name="inicio" type="time" required th:value="${turno.horaInicio}"></div>
+<div class="sc-field"><label class="sc-label" for="fin">Hora final</label><input class="sc-input" id="fin" name="fin" type="time" required th:value="${turno.horaFin}"></div>
+<div class="sc-field"><label class="sc-label" for="consultorio">Consultorio</label><input class="sc-input" id="consultorio" name="consultorio" maxlength="60" required th:value="${turno.consultorio}"></div>
+</div>
+<p class="sc-summary">Se modificará únicamente este turno. Se conservará el registro anterior y se publicará el horario actualizado, sin alterar citas anteriores.</p>
+<div class="sc-actions"><button class="sc-btn" type="submit">Guardar cambios</button></div>
+</form>
+<form th:if="${accion == 'baja'}" method="post" th:action="@{/jefe/turnos/{id}/baja(id=${turno.id})}">
+<input type="hidden" name="version" th:value="${turno.version}">
+<div class="sc-field"><label class="sc-label" for="motivo">Motivo de baja</label><textarea class="sc-input" id="motivo" name="motivo" maxlength="300" rows="3" required></textarea></div>
+<p class="sc-summary">El turno dejará de ofrecerse a los pacientes. Su registro y las citas anteriores se conservarán.</p>
+<div class="sc-actions"><button class="sc-btn sc-btn-danger" type="submit">Confirmar baja</button></div>
+</form>
+<div class="sc-actions"><a class="sc-btn sc-btn-secondary" th:href="@{/jefe/horarios(medicoId=${turno.medico.id},fechaConsulta=${turno.fecha})}">Volver a disponibilidad</a></div>
+</section></div></main></div>
+</body></html>

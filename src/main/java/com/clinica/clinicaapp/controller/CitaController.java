@@ -53,13 +53,15 @@ public class CitaController {
             Model model) {
 
         LocalDate desde = fechaDesde != null
-                ? fechaDesde : LocalDate.now();
+                ? fechaDesde : LocalDate.now(java.time.ZoneId.of("America/Lima"));
         LocalDate hasta = fechaHasta != null
                 ? fechaHasta : desde.plusDays(6);
 
         List<Turno> turnos
                 = turnoRepository.buscarTurnosDisponibles(
-                        especialidadId, desde, hasta);
+                        especialidadId,desde,hasta).stream()
+                        .filter(t -> t.getFecha().atTime(t.getHoraInicio()).isAfter(java.time.LocalDateTime.now(java.time.ZoneId.of("America/Lima"))))
+                        .toList();
 
         Map<Object, List<Turno>> turnosPorMedico
                 = turnos.stream().collect(
@@ -96,7 +98,7 @@ public class CitaController {
 
         // 1. Verificamos que el turno exista y siga disponible
         Turno turno = turnoRepository.findById(turnoId).orElse(null);
-        if (turno == null || !"DISPONIBLE".equals(turno.getEstado())) {
+        if (turno == null || !turno.isActivo() || !"DISPONIBLE".equals(turno.getEstado())) {
             return "redirect:/citas/agendar?error=ocupado";
         }
 
@@ -111,7 +113,8 @@ public class CitaController {
     @PostMapping("/iniciar-pago")
     public String iniciarPago(
             @RequestParam Long turnoId,
-            HttpSession session) {
+            @RequestParam(defaultValue = "") String asunto,
+            HttpSession session, Model model) {
 
         Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
 
@@ -121,9 +124,13 @@ public class CitaController {
 
         try {
             // RF-02 / HU-01: Aquí se bloquea bajo "EN_PROCESO" y arranca el temporizador
-            Cita cita = citaService.iniciarProcesoEmision(turnoId, paciente);
+            Cita cita = citaService.iniciarProcesoEmision(turnoId, paciente, asunto);
             return "redirect:/citas/pago/" + cita.getId();
 
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("errorAsunto", ex.getMessage());
+            model.addAttribute("asunto", asunto);
+            return confirmarReserva(turnoId, session, model);
         } catch (IllegalStateException ex) {
             return "redirect:/citas/agendar?error=ocupado";
         }
@@ -152,7 +159,9 @@ public class CitaController {
             return "redirect:/citas/agendar?error=cita_invalida";
         }
 
-        model.addAttribute("cita", cita);
+        model.addAttribute("cita",cita);
+        model.addAttribute("expiracionEpoch",cita.getFechaBloqueoExpiracion()==null ? 0L
+                : cita.getFechaBloqueoExpiracion().atZone(java.time.ZoneId.of("America/Lima")).toInstant().toEpochMilli());
         return "pago-cita";
     }
 
@@ -161,7 +170,7 @@ public class CitaController {
             @RequestParam Long citaId,
             @RequestParam String numeroTarjeta,
             @RequestParam String metodoPago,
-            HttpSession session) {
+            HttpSession session,RedirectAttributes redirectAttributes) {
 
         Paciente paciente
                 = (Paciente) session.getAttribute("usuarioLogueado");
@@ -176,6 +185,9 @@ public class CitaController {
             return "redirect:/citas/mis-citas";
         }
 
+        if ("CONFIRMADA".equals(cita.getEstado()) || "REPROGRAMADA".equals(cita.getEstado()))
+            return "redirect:/citas/comprobante/" + citaId;
+
         if (!"EN_PROCESO".equals(cita.getEstado())) {
             return "redirect:/citas/agendar?error=cita_invalida";
         }
@@ -189,7 +201,8 @@ public class CitaController {
                     + citaEmitida.getId();
 
         } catch (IllegalStateException ex) {
-            return "redirect:/citas/agendar?error=tiempo_expirado";
+            redirectAttributes.addFlashAttribute("mensajeError",ex.getMessage());
+            return "redirect:/citas/agendar";
         }
     }
 
@@ -273,7 +286,11 @@ public class CitaController {
             return "redirect:/citas/mis-citas";
         }
 
-        model.addAttribute("cita", cita);
+        var ahora=java.time.LocalDateTime.now(java.time.ZoneId.of("America/Lima"));
+        boolean activa=java.util.Set.of("CONFIRMADA","REPROGRAMADA","EMITIDA").contains(cita.getEstado());
+        model.addAttribute("cancelable",activa && cita.getTurno().getFecha().atTime(cita.getTurno().getHoraInicio()).isAfter(ahora));
+        model.addAttribute("reprogramable",activa && !cita.getTurno().getFecha().atTime(cita.getTurno().getHoraInicio()).isBefore(ahora.plusHours(24)));
+        model.addAttribute("cita",cita);
         return "detalle-cita";
     }
 
@@ -307,7 +324,7 @@ public class CitaController {
         List<Turno> turnosMedico
                 = turnoRepository.findTurnosByMedicoId(
                         cita.getTurno().getMedico().getId(),
-                        LocalDate.now());
+                        LocalDate.now(java.time.ZoneId.of("America/Lima")));
 
         model.addAttribute("cita", cita);
         model.addAttribute("turnos", turnosMedico);

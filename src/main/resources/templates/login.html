@@ -30,6 +30,7 @@
             -webkit-text-fill-color: #282828 !important;
         }
     </style>
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
 </head>
 
 <body class="bg-[#ECFDFB] lg:bg-white min-h-screen p-0 m-0">
@@ -88,8 +89,13 @@
                     <span>El correo o la contraseña ingresados son incorrectos.</span>
                 </div>
 
+                <p class="sc-help" style="margin-bottom:16px;text-align:center">Acceso para Paciente, Médico y Jefe Médico.</p>
+                <div th:if="${param.jefeCreado}" class="sc-alert">Cuenta del jefe creada. Ingresa con el correo y la contraseña que acabas de elegir.</div>
+                <div th:if="${param.registroExitoso}" class="sc-alert">Registro completado. Ya puedes iniciar sesión.</div>
+                <div th:if="${param.logout}" class="sc-alert">Cerraste sesión correctamente.</div>
+                <div th:if="${setupDisponible}" class="sc-alert"><a th:href="@{/configuracion-inicial}" class="sc-link">Configurar el primer Jefe Médico</a></div>
                 <!-- Formulario -->
-                <form th:action="@{/login}" method="post" class="space-y-4">
+                <p th:if="${param.cuentaActualizada}" role="status">Tu cuenta fue actualizada o desactivada. Inicia sesión nuevamente si tu acceso sigue activo.</p><form th:action="@{/login}" method="post" class="space-y-4">
 
                     <!-- Campo Correo -->
                     <div class="flex flex-col gap-1.5">

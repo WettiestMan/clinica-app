@@ -15,14 +15,15 @@ public class EmailService {
     private final JavaMailSender mailSender;
 
     // Inyecta el usuario/correo configurado en Brevo desde application/secrets.properties
-    @Value("${clinica.mail.from}")
+    @Value("${clinica.mail.from:no-reply@localhost}")
     private String remitenteVerificado;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailService(org.springframework.beans.factory.ObjectProvider<JavaMailSender> mailSender) {
+        this.mailSender = mailSender.getIfAvailable();
     }
 
     public void enviarEnlaceRecuperacion(String destino, String nombrePaciente, String enlace) {
+        if (mailSender == null) throw new IllegalStateException("Configura SMTP para recuperar la contraseña por correo.");
         try {
             MimeMessage mensaje = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");

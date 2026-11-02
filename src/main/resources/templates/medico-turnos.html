@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Mis Turnos')}"></head>
+<body class="sc-layout" th:with="rolVista='MEDICO'">
+    <aside th:replace="~{fragments/sidebar :: sidebar('turnos')}"></aside>
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
+        <main class="sc-content">
+            <div class="sc-container">
+                <h2 class="sc-page-title">Mis Turnos</h2>
+                <section class="sc-card" aria-labelledby="tituloMisTurnos">
+                    <div class="sc-section-header"><div><h3 class="sc-card-title" id="tituloMisTurnos">Disponibilidad de atención</h3><p class="sc-description">Revisa los horarios asignados a tu jornada y el estado de cada turno.</p></div><span class="sc-badge">Agenda médica</span></div>
+                    <form class="sc-toolbar" th:action="@{/medico/turnos}" method="get"><div class="sc-field"><label class="sc-label" for="fechaTurnos">Fecha de atención</label><input id="fechaTurnos" type="date" name="fecha" th:value="${fecha}" class="sc-input" required></div><button class="sc-btn" type="submit">Consultar turnos</button></form>
+                    <div class="sc-table-scroll" th:if="${turnos != null and !#lists.isEmpty(turnos)}">
+                        <table class="sc-table"><thead><tr><th scope="col">Fecha</th><th scope="col">Inicio</th><th scope="col">Fin</th><th scope="col">Duración</th><th scope="col">Estado</th><th scope="col">Consultorio</th></tr></thead>
+                            <tbody><tr th:each="turno : ${turnos}"><td th:text="${#temporals.format(turno.fecha, 'dd/MM/yyyy')}"></td><td th:text="${#temporals.format(turno.horaInicio, 'HH:mm')}"></td><td th:text="${#temporals.format(turno.horaFin, 'HH:mm')}"></td><td th:text="${turno.duracionMinutos + ' min'}"></td><td><span class="sc-badge" th:classappend="${turno.estado == 'DISPONIBLE' ? 'sc-badge-available' : (turno.estado == 'OCUPADO' ? 'sc-badge-busy' : 'sc-badge-pending')}" th:text="${!turno.activo ? 'BAJA' : (turno.estado == 'EN_PROCESO' ? 'En proceso' : turno.estado)}"></span></td><td th:text="${turno.consultorioVisible}"></td></tr></tbody></table>
+                    </div>
+                    <p class="sc-empty" th:if="${turnos == null or #lists.isEmpty(turnos)}">No tienes turnos asignados para la fecha seleccionada.</p>
+                </section>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

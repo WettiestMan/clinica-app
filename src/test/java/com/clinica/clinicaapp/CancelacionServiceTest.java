@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
     properties = {"spring.sql.init.mode=never", "spring.jpa.hibernate.ddl-auto=create-drop"})
 @Import({
   CancelacionService.class,
+  AvisosCancelacionService.class,
   PoliticaCancelacion.class,
   ProcesadorEventosCancelacion.class,
   CancelacionServiceTest.Reloj.class

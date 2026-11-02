@@ -8,5 +8,9 @@ import java.util.Optional;
 
 @Repository
 public interface TokenRecuperacionRepository extends JpaRepository<TokenRecuperacion, Long> {
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("update TokenRecuperacion t set t.usado = true where lower(t.correo) = lower(:correo)")
+    int invalidarPorCorreo(@org.springframework.data.repository.query.Param("correo") String correo);
+
     Optional<TokenRecuperacion> findByToken(String token);
 }

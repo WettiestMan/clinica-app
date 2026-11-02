@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Usuarios')}">
+</head>
+<body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
+<aside th:replace="~{fragments/sidebar :: sidebar('usuarios')}">
+</aside>
+<div class="sc-workspace">
+<header th:replace="~{fragments/navbar :: navbar}">
+</header>
+<main class="sc-content">
+<div class="sc-container">
+<h2 class="sc-page-title">Usuarios</h2>
+<section class="sc-card">
+<p class="sc-alert" role="status" th:if="${exito}" th:text="${exito}">
+</p>
+<p class="sc-alert sc-alert-error" role="alert" th:if="${error}" th:text="${error}">
+</p>
+<h3 class="sc-card-title" th:text="${usuario.activo ? 'Confirmar baja de cuenta' : 'Reactivar cuenta'}">
+</h3>
+<p th:text="${usuario.correo}">
+</p>
+<p th:if="${usuario.activo}">La cuenta perderá el acceso y conservará su historial. Las citas futuras deben resolverse primero. Los horarios libres del médico dejarán de ofrecerse mientras esté inactivo.</p>
+<p th:unless="${usuario.activo}">La persona podrá volver a iniciar sesión. Los horarios futuros libres del médico volverán a ofrecerse.</p>
+<form method="post" th:action="@{/jefe/usuarios/{tipo}/{id}/estado(tipo=${usuario.tipo},id=${usuario.id})}">
+<input type="hidden" name="version" th:value="${usuario.version}">
+<input type="hidden" name="activo" th:value="${!usuario.activo}">
+<button class="sc-btn" th:text="${usuario.activo ? 'Confirmar baja' : 'Confirmar reactivación'}">
+</button> <a th:href="@{/jefe/usuarios}">Cancelar</a>
+</form>
+</section>
+</div>
+</main>
+</div>
+</body>
+</html>

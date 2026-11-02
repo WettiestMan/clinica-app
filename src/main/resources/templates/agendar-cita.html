@@ -12,27 +12,22 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
               rel="stylesheet">
+        <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
+</head>
 
-        <style>
-            body {
-                font-family: 'Poppins', sans-serif;
-            }
-        </style>
-    </head>
-
-    <body class="bg-[#F4F6F6] h-screen overflow-hidden flex">
+    <body class="sc-layout">
 
         <!-- Sidebar -->
         <aside th:replace="~{fragments/sidebar :: sidebar('agendar')}"></aside>
 
         <!-- Contenedor principal -->
-        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+        <div class="sc-workspace">
 
             <!-- Navbar -->
             <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-            <main class="flex-1 overflow-y-auto px-10 pb-10">
-                <div class="max-w-4xl mx-auto pb-16">
+            <main class="sc-content">
+                <div class="sc-container">
 
                     <h2 class="text-3xl font-bold text-black mb-6">
                         Buscar Disponibilidad
@@ -83,7 +78,9 @@
                             </p>
                         </div>
 
-                        <!-- Mensaje de selección -->
+                        <p class="sc-alert sc-alert-error" th:if="${mensajeError}" th:text="${mensajeError}"></p>
+                    <p class="sc-alert sc-alert-warning" th:if="${param.error != null and param.error[0] == 'tiempo_expirado'}">La reserva venció. Selecciona un nuevo turno.</p>
+                    <!-- Mensaje de selección -->
                         <div th:if="${param.error != null and param.error[0] == 'seleccione_turno'}"
                              class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm">
                             Por favor selecciona uno de los horarios libres

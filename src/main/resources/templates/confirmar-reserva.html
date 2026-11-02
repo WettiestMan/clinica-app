@@ -1,22 +1,36 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaludCitas - 2 · Confirmar Reserva</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Poppins', sans-serif; }</style>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
 </head>
+
 <body class="bg-[#F4F6F6] min-h-screen flex items-center justify-center p-6">
     <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-xl w-full border border-gray-100">
-        
+
         <!-- Barra de Progreso -->
         <div class="grid grid-cols-4 gap-3 mb-6">
-            <div><span class="text-xs font-medium text-zinc-400">1 · Buscar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
-            <div><span class="text-xs font-bold text-black">2 · Confirmar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
-            <div><span class="text-xs font-medium text-zinc-400">3 · Pagar</span><div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div></div>
-            <div><span class="text-xs font-medium text-zinc-400">4 · Ticket</span><div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div></div>
+            <div><span class="text-xs font-medium text-zinc-400">1 · Buscar</span>
+                <div class="h-2 bg-[#3B8272] rounded-full mt-1"></div>
+            </div>
+            <div><span class="text-xs font-bold text-black">2 · Confirmar</span>
+                <div class="h-2 bg-[#3B8272] rounded-full mt-1"></div>
+            </div>
+            <div><span class="text-xs font-medium text-zinc-400">3 · Pagar</span>
+                <div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div>
+            </div>
+            <div><span class="text-xs font-medium text-zinc-400">4 · Ticket</span>
+                <div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div>
+            </div>
         </div>
 
         <h3 class="text-2xl font-bold text-black mb-1">Resumen de la Cita</h3>
@@ -26,16 +40,26 @@
         <div class="bg-[#F8F9FA] rounded-2xl p-5 space-y-3.5 border border-zinc-100 mb-6">
             <div class="flex justify-between text-sm">
                 <span class="text-zinc-500">Médico:</span>
-                <span class="font-semibold text-black" th:text="${turno.medico.nombres + ' ' + turno.medico.apellidos}">Dr. Tello</span>
+                <span class="font-semibold text-black"
+                    th:text="${turno.medico.nombres + ' ' + turno.medico.apellidos}">Dr. Tello</span>
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-zinc-500">Especialidad:</span>
                 <span class="font-semibold text-black" th:text="${turno.medico.especialidad.nombre}">Cardiología</span>
             </div>
+
+            <div class="flex justify-between text-sm">
+                <span class="text-zinc-500">Consultorio:</span>
+                <span class="font-semibold text-black"
+                    th:text="${turno.consultorio != null ? turno.consultorio : 'Por asignar en admisión'}">
+                    Cons. 201 (Torre B)
+                </span>
+            </div>
+
             <div class="flex justify-between text-sm">
                 <span class="text-zinc-500">Fecha y Hora:</span>
-                <span class="font-semibold text-[#2D735C]" 
-                      th:text="${#temporals.format(turno.fecha, 'dd/MM/yyyy') + ' a las ' + #temporals.format(turno.horaInicio, 'HH:mm')}">
+                <span class="font-semibold text-[#2D735C]"
+                    th:text="${#temporals.format(turno.fecha, 'dd/MM/yyyy') + ' a las ' + #temporals.format(turno.horaInicio, 'HH:mm')}">
                     24/10/2026 a las 08:30
                 </span>
             </div>
@@ -54,16 +78,16 @@
         <!-- Acciones: Regresar vs Proceder -->
         <div class="flex items-center gap-4">
             <!-- 1. Regresar: enlace simple GET que no afecta la BD -->
-            <a th:href="@{/citas/agendar}" 
-               class="w-1/2 py-3 rounded-xl border border-zinc-300 text-center font-medium text-zinc-700 hover:bg-zinc-50 transition">
+            <a th:href="@{/citas/agendar}"
+                class="w-1/2 py-3 rounded-xl border border-zinc-300 text-center font-medium text-zinc-700 hover:bg-zinc-50 transition">
                 Regresar
             </a>
 
             <!-- 2. Proceder al pago: formulario POST que inicia el bloqueo temporal de 15 minutos -->
             <form th:action="@{/citas/iniciar-pago}" method="post" class="w-1/2">
                 <input type="hidden" name="turnoId" th:value="${turno.id}">
-                <button type="submit" 
-                        class="w-full py-3 bg-[#2D735C] hover:bg-[#235b49] text-white rounded-xl text-center font-medium transition shadow-sm">
+                <button type="submit"
+                    class="w-full py-3 bg-[#2D735C] hover:bg-[#235b49] text-white rounded-xl text-center font-medium transition shadow-sm">
                     Proceder al Pago
                 </button>
             </form>
@@ -71,4 +95,5 @@
 
     </div>
 </body>
+
 </html>

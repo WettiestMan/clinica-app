@@ -25,16 +25,18 @@ public class DisponibilidadService {
     }
 
     @Transactional
-    public int generarTurnosSemanales(Long medicoId, 
-                                      LocalDate fechaSemanaLunes, 
-                                      List<DayOfWeek> diasSeleccionados, 
-                                      LocalTime horaInicio, 
-                                      LocalTime horaFin) {
+    public int generarTurnosSemanales(Long medicoId,
+            LocalDate fechaSemanaLunes,
+            List<DayOfWeek> diasSeleccionados,
+            LocalTime horaInicio,
+            LocalTime horaFin,
+            String consultorio) {
 
         // 1. Regla de anticipación: Solo programar semanas futuras
         LocalDate inicioSemanaActual = LocalDate.now().with(DayOfWeek.MONDAY);
         if (!fechaSemanaLunes.isAfter(inicioSemanaActual)) {
-            throw new IllegalStateException("La programación médica debe realizarse con mínimo una semana de anticipación.");
+            throw new IllegalStateException(
+                    "La programación médica debe realizarse con mínimo una semana de anticipación.");
         }
 
         // 2. Validación de coherencia de horario
@@ -45,7 +47,8 @@ public class DisponibilidadService {
         Medico medico = medicoRepository.findById(medicoId)
                 .orElseThrow(() -> new IllegalArgumentException("El médico seleccionado no existe."));
 
-        // 3. Duración dinámica por especialidad (ej. Pediatría = 30m, Medicina General = 15m)
+        // 3. Duración dinámica por especialidad (ej. Pediatría = 30m, Medicina General
+        // = 15m)
         int duracionMinutos = medico.getEspecialidad().getDuracionMinutosDefault();
         if (duracionMinutos <= 0) {
             duracionMinutos = 30; // Respaldo por defecto
@@ -62,13 +65,14 @@ public class DisponibilidadService {
                 LocalTime cursor = horaInicio;
 
                 // Generar los bloques mientras el bloque quepa antes de horaFin
-                while (cursor.plusMinutes(duracionMinutos).isBefore(horaFin) 
-                       || cursor.plusMinutes(duracionMinutos).equals(horaFin)) {
+                while (cursor.plusMinutes(duracionMinutos).isBefore(horaFin)
+                        || cursor.plusMinutes(duracionMinutos).equals(horaFin)) {
 
                     LocalTime proximoCursor = cursor.plusMinutes(duracionMinutos);
 
                     // Evitar duplicar turnos si ya fueron creados previamente
-                    boolean yaExiste = turnoRepository.existsByMedicoIdAndFechaAndHoraInicio(medicoId, fechaDia, cursor);
+                    boolean yaExiste = turnoRepository.existsByMedicoIdAndFechaAndHoraInicio(medicoId, fechaDia,
+                            cursor);
                     if (!yaExiste) {
                         Turno turno = new Turno();
                         turno.setMedico(medico);
@@ -78,6 +82,7 @@ public class DisponibilidadService {
                         turno.setDuracionMinutos(duracionMinutos);
                         turno.setEstado("DISPONIBLE");
                         turno.setEsSobrecupo(false);
+                        turno.setConsultorio(consultorio);
 
                         turnosNuevos.add(turno);
                     }
@@ -88,7 +93,8 @@ public class DisponibilidadService {
         }
 
         if (turnosNuevos.isEmpty()) {
-            throw new IllegalStateException("No se generó ningún turno. Verifique si los horarios ya estaban previamente registrados.");
+            throw new IllegalStateException(
+                    "No se generó ningún turno. Verifique si los horarios ya estaban previamente registrados.");
         }
 
         // 5. Inserción masiva en BD

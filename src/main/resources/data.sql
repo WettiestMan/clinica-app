@@ -43,78 +43,110 @@ ON CONFLICT (id) DO UPDATE SET
     es_jefe = EXCLUDED.es_jefe;
 
 -- =====================================================
--- 3. TURNOS (Duración variable según especialidad)
+-- 3. TURNOS (Con asignación de Consultorio físico)
 -- =====================================================
 
 -- --- CARDIOLOGÍA (30 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(101, 1, '2026-10-24', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false),
-(102, 1, '2026-10-24', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
-(103, 1, '2026-10-24', '09:30:00', '10:00:00', 30, 'OCUPADO', false),
-(104, 1, '2026-10-24', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
-(105, 1, '2026-10-26', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
-(106, 1, '2026-10-26', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
-(107, 1, '2026-10-26', '10:00:00', '10:30:00', 30, 'OCUPADO', false),
-(108, 2, '2026-10-25', '14:00:00', '14:30:00', 30, 'DISPONIBLE', false),
-(109, 2, '2026-10-25', '14:30:00', '15:00:00', 30, 'DISPONIBLE', false),
-(110, 2, '2026-10-27', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
-(111, 2, '2026-10-27', '15:30:00', '16:00:00', 30, 'OCUPADO', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(101, 1, '2026-11-02', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(102, 1, '2026-11-02', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(103, 1, '2026-11-02', '09:30:00', '10:00:00', 30, 'OCUPADO', false, 'Cons. 101 (Torre A)'),
+(104, 1, '2026-11-02', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(105, 1, '2026-11-04', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(106, 1, '2026-11-04', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(107, 1, '2026-11-04', '10:00:00', '10:30:00', 30, 'OCUPADO', false, 'Cons. 101 (Torre A)'),
+(108, 2, '2026-11-03', '14:00:00', '14:30:00', 30, 'DISPONIBLE', false, 'Cons. 102 (Torre A)'),
+(109, 2, '2026-11-03', '14:30:00', '15:00:00', 30, 'DISPONIBLE', false, 'Cons. 102 (Torre A)'),
+(110, 2, '2026-11-05', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false, 'Cons. 102 (Torre A)'),
+(111, 2, '2026-11-05', '15:30:00', '16:00:00', 30, 'OCUPADO', false, 'Cons. 102 (Torre A)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- --- PEDIATRÍA (30 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(112, 3, '2026-10-24', '08:00:00', '08:30:00', 30, 'DISPONIBLE', false),
-(113, 3, '2026-10-24', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false),
-(114, 3, '2026-10-24', '09:00:00', '09:30:00', 30, 'OCUPADO', false),
-(115, 3, '2026-10-26', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false),
-(116, 3, '2026-10-26', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(112, 3, '2026-11-02', '08:00:00', '08:30:00', 30, 'DISPONIBLE', false, 'Cons. 201 (Torre B)'),
+(113, 3, '2026-11-02', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false, 'Cons. 201 (Torre B)'),
+(114, 3, '2026-11-02', '09:00:00', '09:30:00', 30, 'OCUPADO', false, 'Cons. 201 (Torre B)'),
+(115, 3, '2026-11-04', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false, 'Cons. 201 (Torre B)'),
+(116, 3, '2026-11-04', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false, 'Cons. 201 (Torre B)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- --- MEDICINA GENERAL (15 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(117, 4, '2026-10-24', '08:00:00', '08:15:00', 15, 'DISPONIBLE', false),
-(118, 4, '2026-10-24', '08:15:00', '08:30:00', 15, 'DISPONIBLE', false),
-(119, 4, '2026-10-24', '08:30:00', '08:45:00', 15, 'OCUPADO', false),
-(120, 4, '2026-10-24', '08:45:00', '09:00:00', 15, 'DISPONIBLE', false),
-(121, 4, '2026-10-25', '09:00:00', '09:15:00', 15, 'DISPONIBLE', false),
-(122, 4, '2026-10-25', '09:15:00', '09:30:00', 15, 'DISPONIBLE', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(117, 4, '2026-11-02', '08:00:00', '08:15:00', 15, 'DISPONIBLE', false, 'Cons. 202 (Torre B)'),
+(118, 4, '2026-11-02', '08:15:00', '08:30:00', 15, 'DISPONIBLE', false, 'Cons. 202 (Torre B)'),
+(119, 4, '2026-11-02', '08:30:00', '08:45:00', 15, 'OCUPADO', false, 'Cons. 202 (Torre B)'),
+(120, 4, '2026-11-02', '08:45:00', '09:00:00', 15, 'DISPONIBLE', false, 'Cons. 202 (Torre B)'),
+(121, 4, '2026-11-03', '09:00:00', '09:15:00', 15, 'DISPONIBLE', false, 'Cons. 202 (Torre B)'),
+(122, 4, '2026-11-03', '09:15:00', '09:30:00', 15, 'DISPONIBLE', false, 'Cons. 202 (Torre B)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- --- DERMATOLOGÍA (30 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(123, 5, '2026-10-26', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
-(124, 5, '2026-10-26', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
-(125, 5, '2026-10-27', '10:00:00', '10:30:00', 30, 'OCUPADO', false),
-(126, 5, '2026-10-27', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(123, 5, '2026-11-03', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(124, 5, '2026-11-03', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(125, 5, '2026-11-04', '10:00:00', '10:30:00', 30, 'OCUPADO', false, 'Cons. 101 (Torre A)'),
+(126, 5, '2026-11-04', '10:30:00', '11:00:00', 30, 'DISPONIBLE', false, 'Cons. 101 (Torre A)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- --- OFTALMOLOGÍA (30 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(127, 6, '2026-10-27', '11:00:00', '11:30:00', 30, 'DISPONIBLE', false),
-(128, 6, '2026-10-27', '11:30:00', '12:00:00', 30, 'DISPONIBLE', false),
-(129, 6, '2026-10-28', '16:00:00', '16:30:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(127, 6, '2026-11-03', '11:00:00', '11:30:00', 30, 'DISPONIBLE', false, 'Cons. 102 (Torre A)'),
+(128, 6, '2026-11-03', '11:30:00', '12:00:00', 30, 'DISPONIBLE', false, 'Cons. 102 (Torre A)'),
+(129, 6, '2026-11-05', '16:00:00', '16:30:00', 30, 'DISPONIBLE', false, 'Cons. 102 (Torre A)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- --- TRAUMATOLOGÍA (30 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(130, 7, '2026-10-28', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false),
-(131, 7, '2026-10-28', '15:30:00', '16:00:00', 30, 'OCUPADO', false),
-(132, 7, '2026-10-29', '16:00:00', '16:30:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(130, 7, '2026-11-04', '15:00:00', '15:30:00', 30, 'DISPONIBLE', false, 'Cons. 201 (Torre B)'),
+(131, 7, '2026-11-04', '15:30:00', '16:00:00', 30, 'OCUPADO', false, 'Cons. 201 (Torre B)'),
+(132, 7, '2026-11-06', '16:00:00', '16:30:00', 30, 'DISPONIBLE', false, 'Cons. 201 (Torre B)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- --- GINECOLOGÍA (30 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(133, 8, '2026-10-29', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false),
-(134, 8, '2026-10-29', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false),
-(135, 8, '2026-10-30', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(133, 8, '2026-11-05', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false, 'Cons. 202 (Torre B)'),
+(134, 8, '2026-11-05', '09:30:00', '10:00:00', 30, 'DISPONIBLE', false, 'Cons. 202 (Torre B)'),
+(135, 8, '2026-11-06', '10:00:00', '10:30:00', 30, 'DISPONIBLE', false, 'Cons. 202 (Torre B)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- --- ODONTOLOGÍA (45 min) ---
-INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo) VALUES
-(136, 9, '2026-10-30', '10:00:00', '10:45:00', 45, 'DISPONIBLE', false),
-(137, 9, '2026-10-30', '10:45:00', '11:30:00', 45, 'OCUPADO', false),
-(138, 9, '2026-10-31', '09:00:00', '09:45:00', 45, 'DISPONIBLE', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, consultorio) VALUES
+(136, 9, '2026-11-06', '10:00:00', '10:45:00', 45, 'DISPONIBLE', false, 'Cons. 101 (Torre A)'),
+(137, 9, '2026-11-06', '10:45:00', '11:30:00', 45, 'OCUPADO', false, 'Cons. 101 (Torre A)'),
+(138, 9, '2026-11-07', '09:00:00', '09:45:00', 45, 'DISPONIBLE', false, 'Cons. 101 (Torre A)')
+ON CONFLICT (id) DO UPDATE SET 
+    fecha = EXCLUDED.fecha,
+    hora_inicio = EXCLUDED.hora_inicio,
+    hora_fin = EXCLUDED.hora_fin,
+    consultorio = EXCLUDED.consultorio;
 
 -- =====================================================
 -- 4. SINCRONIZACIÓN OBLIGATORIA DE SECUENCIAS

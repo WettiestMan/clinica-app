@@ -58,6 +58,7 @@ public class PersonalMedicoController {
             @RequestParam List<String> dias,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaFin,
+            @RequestParam String consultorio, // <--- PARÁMETRO CONSULTORIO
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -65,12 +66,13 @@ public class PersonalMedicoController {
                     .map(DayOfWeek::valueOf)
                     .toList();
 
+            // Llamada con los 6 parámetros
             int cantidadGenerada = disponibilidadService.generarTurnosSemanales(
-                    medicoId, fechaSemana, diasEnum, horaInicio, horaFin
+                    medicoId, fechaSemana, diasEnum, horaInicio, horaFin, consultorio
             );
 
             redirectAttributes.addFlashAttribute("exito", 
-                    "¡Publicación exitosa! Se han creado " + cantidadGenerada + " turnos disponibles para los pacientes.");
+                    "¡Publicación exitosa! Se han creado " + cantidadGenerada + " turnos en " + consultorio + ".");
 
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
@@ -78,7 +80,6 @@ public class PersonalMedicoController {
 
         return "redirect:/personal/disponibilidad";
     }
-
     // ==========================================
     // 2. MÉDICO: Citas Asignadas (ESTE MÉTODO SOLUCIONA EL 404)
     // ==========================================

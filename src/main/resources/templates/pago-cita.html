@@ -30,39 +30,165 @@
         <h3 class="text-2xl font-bold text-black mb-1">Pago de prueba</h3>
         <p class="text-zinc-500 text-sm mb-6">Monto a pagar: <strong class="text-black" th:text="${'S/ ' + cita.monto}"></strong></p>
 
-        <p class="text-amber-800 text-sm mb-4">Demostración académica: no se realizan cobros. Usa datos ficticios. Requiere activar clinica.pago.simulado.</p>
-        <form th:action="@{/citas/procesar-pago}" method="post" class="space-y-4">
+        <p class="text-amber-800 text-xs mb-4">Demostración académica: no se realizan cobros reales. Requiere activar clinica.pago.simulado.</p>
+        
+        <form th:action="@{/citas/procesar-pago}" method="post" id="formPago" class="space-y-4">
             <input type="hidden" name="citaId" th:value="${cita.id}">
             <input type="hidden" name="metodoPago" value="TARJETA_CREDITO_DEBITO">
 
+            <!-- Campo Número de Tarjeta -->
             <div>
                 <label class="text-zinc-600 text-sm font-medium">Número de Tarjeta</label>
-                <input type="text" name="numeroTarjeta" placeholder="4242 •••• •••• 4242" required
-                       class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                <input type="text" id="numeroTarjeta" name="numeroTarjeta" placeholder="1234 5678 9012 3456" maxlength="19" required
+                       class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none tracking-widest font-mono">
+                <span id="errorTarjeta" class="hidden text-xs text-red-600 font-medium mt-1">Ingresa los 16 dígitos de la tarjeta.</span>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
+                <!-- Campo Vencimiento MM/AA -->
                 <div>
                     <label class="text-zinc-600 text-sm font-medium">Vencimiento</label>
-                    <input type="text" placeholder="MM/AA" required
-                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                    <input type="text" id="fechaVencimiento" placeholder="MM/AA" maxlength="5" required
+                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none text-center font-mono">
+                    <span id="errorVencimiento" class="hidden text-xs text-red-600 font-medium mt-1">Tarjeta vencida o mes no válido.</span>
                 </div>
+
+                <!-- Campo CVV -->
                 <div>
                     <label class="text-zinc-600 text-sm font-medium">CVV</label>
-                    <input type="password" maxlength="3" placeholder="•••" required
-                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                    <input type="password" id="cvv" maxlength="3" placeholder="•••" required
+                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none text-center font-mono">
+                    <span id="errorCvv" class="hidden text-xs text-red-600 font-medium mt-1">Requiere 3 dígitos.</span>
                 </div>
             </div>
 
-            <button type="submit" 
+            <button type="submit" id="btnPagar"
                     class="w-full mt-4 py-3.5 bg-[#2D735C] text-white font-medium rounded-xl hover:bg-[#235b49] transition shadow-sm">
                 Pagar y Emitir Cita Médica
             </button>
         </form>
     </div>
 
-    <!-- Script del Temporizador de 15 Minutos -->
     <script>
+        // -------------------------------------------------------------
+        // 1. FORMATEO Y RESTRICCIÓN DE NÚMERO DE TARJETA (XXXX XXXX XXXX XXXX)
+        // -------------------------------------------------------------
+        const inputTarjeta = document.getElementById('numeroTarjeta');
+        const errorTarjeta = document.getElementById('errorTarjeta');
+
+        inputTarjeta.addEventListener('input', (e) => {
+            // Solo permitir números y eliminar cualquier otro caracter
+            let valor = e.target.value.replace(/\D/g, '');
+            
+            // Máximo 16 dígitos reales
+            if (valor.length > 16) valor = valor.substring(0, 16);
+
+            // Agrupar en bloques de 4 separados por un espacio
+            const partes = valor.match(/.{1,4}/g);
+            e.target.value = partes ? partes.join(' ') : '';
+
+            // Ocultar error mientras tipea
+            if (valor.length === 16) {
+                errorTarjeta.classList.add('hidden');
+                inputTarjeta.classList.remove('border-red-400');
+            }
+        });
+
+        // -------------------------------------------------------------
+        // 2. FORMATEO Y VALIDACIÓN DE VENCIMIENTO (MM/AA)
+        // -------------------------------------------------------------
+        const inputVencimiento = document.getElementById('fechaVencimiento');
+        const errorVencimiento = document.getElementById('errorVencimiento');
+
+        inputVencimiento.addEventListener('input', (e) => {
+            let valor = e.target.value.replace(/\D/g, '');
+            if (valor.length > 4) valor = valor.substring(0, 4);
+
+            if (valor.length >= 3) {
+                e.target.value = valor.substring(0, 2) + '/' + valor.substring(2);
+            } else {
+                e.target.value = valor;
+            }
+
+            errorVencimiento.classList.add('hidden');
+            inputVencimiento.classList.remove('border-red-400');
+        });
+
+        function esFechaValida(vencimientoTexto) {
+            if (!/^\d{2}\/\d{2}$/.test(vencimientoTexto)) return false;
+
+            const [mesStr, anioStr] = vencimientoTexto.split('/');
+            const mes = parseInt(mesStr, 10);
+            const anio = parseInt('20' + anioStr, 10);
+
+            // Validar rango de meses
+            if (mes < 1 || mes > 12) return false;
+
+            const ahora = new Date();
+            const anioActual = ahora.getFullYear();
+            const mesActual = ahora.getMonth() + 1; // getMonth() retorna 0-11
+
+            // Si el año es menor al actual, ya venció
+            if (anio < anioActual) return false;
+
+            // Si es el año en curso, el mes no puede ser menor al actual
+            if (anio === anioActual && mes < mesActual) return false;
+
+            return true;
+        }
+
+        // -------------------------------------------------------------
+        // 3. VALIDACIÓN CVV (Solo números)
+        // -------------------------------------------------------------
+        const inputCvv = document.getElementById('cvv');
+        const errorCvv = document.getElementById('errorCvv');
+
+        inputCvv.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+            if (e.target.value.length === 3) {
+                errorCvv.classList.add('hidden');
+                inputCvv.classList.remove('border-red-400');
+            }
+        });
+
+        // -------------------------------------------------------------
+        // 4. VALIDACIÓN PREVENTIVA ANTES DE ENVIAR EL FORMULARIO
+        // -------------------------------------------------------------
+        const formPago = document.getElementById('formPago');
+
+        formPago.addEventListener('submit', (e) => {
+            let esValido = true;
+
+            // Validar exactamente 16 dígitos en tarjeta
+            const digitosTarjeta = inputTarjeta.value.replace(/\D/g, '');
+            if (digitosTarjeta.length !== 16) {
+                errorTarjeta.classList.remove('hidden');
+                inputTarjeta.classList.add('border-red-400');
+                esValido = false;
+            }
+
+            // Validar vigencia de tarjeta
+            if (!esFechaValida(inputVencimiento.value)) {
+                errorVencimiento.classList.remove('hidden');
+                inputVencimiento.classList.add('border-red-400');
+                esValido = false;
+            }
+
+            // Validar CVV
+            if (inputCvv.value.length !== 3) {
+                errorCvv.classList.remove('hidden');
+                inputCvv.classList.add('border-red-400');
+                esValido = false;
+            }
+
+            if (!esValido) {
+                e.preventDefault(); // Detener el submit si alguna regla falló
+            }
+        });
+
+        // -------------------------------------------------------------
+        // 5. CRONÓMETRO DE EXPIRACIÓN (15 MINUTOS)
+        // -------------------------------------------------------------
         let tiempoRestante = 15 * 60;
         const cronometro = document.getElementById('cronometro');
 

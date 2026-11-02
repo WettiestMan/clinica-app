@@ -3,6 +3,7 @@ package com.clinica.clinicaapp.repository;
 import com.clinica.clinicaapp.entity.Turno;
 import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +25,7 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
     JOIN FETCH m.especialidad e
     WHERE (:especialidadId IS NULL OR e.id = :especialidadId)
       AND t.fecha BETWEEN :desde AND :hasta
+      AND t.estado = 'DISPONIBLE'
     ORDER BY t.fecha ASC, m.apellidos ASC, t.horaInicio ASC
     """)
     List<Turno> buscarTurnosDisponibles(
@@ -41,4 +43,7 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
     List<Turno> findTurnosByMedicoId(
             @Param("medicoId") Long medicoId,
             @Param("fechaHoy") LocalDate fechaHoy);
+
+    // Método añadido para prevenir duplicados al generar disponibilidad masiva
+    boolean existsByMedicoIdAndFechaAndHoraInicio(Long medicoId, LocalDate fecha, LocalTime horaInicio);
 }

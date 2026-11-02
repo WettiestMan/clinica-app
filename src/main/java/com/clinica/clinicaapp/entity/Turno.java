@@ -8,7 +8,8 @@ import java.time.LocalTime;
 
 @Entity
 @Table(name = "turnos")
-@Getter @Setter
+@Getter
+@Setter
 public class Turno {
 
     @Id
@@ -31,9 +32,20 @@ public class Turno {
     @Column(nullable = false)
     private Integer duracionMinutos; // Duración fija una vez creado
 
+    @Column(length = 50)
+    private String consultorio;
+
     @Column(nullable = false)
     private String estado; // "DISPONIBLE", "EN_PROCESO", "OCUPADO"
 
     @Column(nullable = false)
     private Boolean esSobrecupo = false; // Sobrecupo habilitado por Jefe Médico
+
+    public String getConsultorio() {
+        return consultorio;
+    }
+
+    public void setConsultorio(String consultorio) {
+        this.consultorio = consultorio;
+    }
 }

@@ -57,19 +57,22 @@ public class CitaController {
         LocalDate hasta = fechaHasta != null
                 ? fechaHasta : desde.plusDays(6);
 
-        List<Turno> turnos
-                = turnoRepository.buscarTurnosDisponibles(
-                        especialidadId, desde, hasta);
+        Map<Object, List<Turno>> turnosPorMedico = new LinkedHashMap<>();
 
-        Map<Object, List<Turno>> turnosPorMedico
-                = turnos.stream().collect(
-                        Collectors.groupingBy(
-                                Turno::getMedico,
-                                LinkedHashMap::new,
-                                Collectors.toList()));
+        // CONDICIÓN CLAVE: Solo buscar turnos si se seleccionó una especialidad
+        if (especialidadId != null) {
+            List<Turno> turnos = turnoRepository.buscarTurnosDisponibles(especialidadId, desde, hasta);
 
-        model.addAttribute(
-                "especialidades", especialidadRepository.findAll());
+            turnosPorMedico = turnos.stream().collect(
+                    Collectors.groupingBy(
+                            Turno::getMedico,
+                            LinkedHashMap::new,
+                            Collectors.toList()
+                    )
+            );
+        }
+
+        model.addAttribute("especialidades", especialidadRepository.findAll());
         model.addAttribute("turnosPorMedico", turnosPorMedico);
         model.addAttribute("especialidadSeleccionada", especialidadId);
         model.addAttribute("fechaDesde", desde);

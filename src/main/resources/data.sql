@@ -23,18 +23,18 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- =====================================================
 -- 2. MÉDICOS (Con credenciales para login y rol de Jefatura)
--- Contraseña encriptada BCrypt para 'medico123': $2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.
+-- Contraseña encriptada BCrypt para 'password': $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
 -- =====================================================
 INSERT INTO medicos (id, nombres, apellidos, especialidad_id, correo, password, es_jefe) VALUES 
-(1, 'Dr.', 'Tello', 1, 'tello@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', true),          -- Jefe Médico
-(2, 'Dra.', 'Perez', 1, 'perez@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false),        -- Cardiología
-(3, 'Dr.', 'Ramirez', 2, 'ramirez@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false),     -- Pediatría
-(4, 'Dra.', 'Mendoza', 3, 'mendoza@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false),    -- Medicina General
-(5, 'Dr.', 'Castillo', 4, 'castillo@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false),   -- Dermatología
-(6, 'Dr.', 'Vargas', 6, 'vargas@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false),       -- Oftalmología
-(7, 'Dra.', 'Salazar', 7, 'salazar@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false),    -- Traumatología
-(8, 'Dra.', 'Flores', 8, 'flores@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false),      -- Ginecología
-(9, 'Dr.', 'Navarro', 9, 'navarro@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', false)      -- Odontología
+(1, 'Dr.', 'Tello', 1, 'tello@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', true),          -- Jefe Médico
+(2, 'Dra.', 'Perez', 1, 'perez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),        -- Cardiología
+(3, 'Dr.', 'Ramirez', 2, 'ramirez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),     -- Pediatría
+(4, 'Dra.', 'Mendoza', 3, 'mendoza@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),    -- Medicina General
+(5, 'Dr.', 'Castillo', 4, 'castillo@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),   -- Dermatología
+(6, 'Dr.', 'Vargas', 6, 'vargas@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),       -- Oftalmología
+(7, 'Dra.', 'Salazar', 7, 'salazar@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),    -- Traumatología
+(8, 'Dra.', 'Flores', 8, 'flores@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),      -- Ginecología
+(9, 'Dr.', 'Navarro', 9, 'navarro@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false)      -- Odontología
 ON CONFLICT (id) DO UPDATE SET 
     nombres = EXCLUDED.nombres, 
     apellidos = EXCLUDED.apellidos, 
@@ -45,22 +45,23 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- =====================================================
 -- 2.1 USUARIOS PERSONAL (Estructura real sin columna version)
+-- Contraseña encriptada BCrypt para 'password': $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
 -- =====================================================
 INSERT INTO usuarios_personal (id, medico_id, nombre, correo, password, rol, activo) VALUES
-(1, 1, 'Dr. Tello', 'tello@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'JEFE_MEDICO', true),
-(2, 2, 'Dra. Perez', 'perez@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true),
-(3, 3, 'Dr. Ramirez', 'ramirez@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true),
-(4, 4, 'Dra. Mendoza', 'mendoza@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true),
-(5, 5, 'Dr. Castillo', 'castillo@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true),
-(6, 6, 'Dr. Vargas', 'vargas@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true),
-(7, 7, 'Dra. Salazar', 'salazar@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true),
-(8, 8, 'Dra. Flores', 'flores@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true),
-(9, 9, 'Dr. Navarro', 'navarro@saludcitas.com', '$2a$10$wT8K5P9N7eI0vBv7qXyKge8Q4c4yM0yG6qZ3X7t8z0vQ4a8b7c6d.', 'MEDICO', true)
+(1, 1, 'Dr. Tello', 'tello@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'JEFE_MEDICO', true),
+(2, 2, 'Dra. Perez', 'perez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
+(3, 3, 'Dr. Ramirez', 'ramirez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
+(4, 4, 'Dra. Mendoza', 'mendoza@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
+(5, 5, 'Dr. Castillo', 'castillo@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
+(6, 6, 'Dr. Vargas', 'vargas@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
+(7, 7, 'Dra. Salazar', 'salazar@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
+(8, 8, 'Dra. Flores', 'flores@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
+(9, 9, 'Dr. Navarro', 'navarro@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true)
 ON CONFLICT (id) DO UPDATE SET 
-    nombre = EXCLUDED.nombre,
-    correo = EXCLUDED.correo,
-    password = EXCLUDED.password,
-    rol = EXCLUDED.rol,
+    nombre = EXCLUDED.nombre, 
+    correo = EXCLUDED.correo, 
+    password = EXCLUDED.password, 
+    rol = EXCLUDED.rol, 
     activo = EXCLUDED.activo;
 
 -- =====================================================

@@ -21,6 +21,7 @@ public class CancelacionService {
   private final EventoCancelacionRepository eventos;
   private final PoliticaCancelacion politica;
   private final Clock clock;
+  private final AvisosCancelacionService avisos;
 
   public CancelacionService(
       CitaRepository c,
@@ -28,13 +29,14 @@ public class CancelacionService {
       ComprobantePagoRepository p,
       EventoCancelacionRepository e,
       PoliticaCancelacion policy,
-      Clock clock) {
+      Clock clock, AvisosCancelacionService avisos) {
     citas = c;
     bajas = b;
     pagos = p;
     eventos = e;
     politica = policy;
     this.clock = clock;
+    this.avisos = avisos;
   }
 
   public record Evaluacion(Cita cita, boolean dentroPlazo, BigDecimal importe, boolean pagada) {}
@@ -49,9 +51,10 @@ public class CancelacionService {
   }
 
   private void vigente(Cita c) {
-    if (!Set.of("CONFIRMADA", "EMITIDA", "REPROGRAMADA").contains(c.getEstado().toUpperCase(Locale.ROOT))
-        || !politica.futura(c.getTurno().getFecha(), c.getTurno().getHoraInicio()))
-      throw invalida();
+    if (!Set.of("CONFIRMADA", "EMITIDA", "REPROGRAMADA").contains(c.getEstado().toUpperCase(Locale.ROOT)))
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"El estado de esta cita no permite cancelarla.");
+    if (!politica.futura(c.getTurno().getFecha(),c.getTurno().getHoraInicio()))
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"La fecha de esta cita ya pasó. Consulta el historial.");
   }
 
   @Transactional(readOnly = true)
@@ -142,7 +145,8 @@ public class CancelacionService {
     e.setCancelacion(b);
     e.setTipo(tipo);
     e.setProximoIntento(clock.instant());
-    eventos.save(e);
+    eventos.saveAndFlush(e);
+    if ("AVISO_CUPO_LIBERADO".equals(tipo)) avisos.registrar(e.getId());
   }
 
   @Transactional(readOnly = true)

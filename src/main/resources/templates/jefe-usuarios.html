@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Usuarios')}">
+</head>
+<body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
+<aside th:replace="~{fragments/sidebar :: sidebar('usuarios')}">
+</aside>
+<div class="sc-workspace">
+<header th:replace="~{fragments/navbar :: navbar}">
+</header>
+<main class="sc-content">
+<div class="sc-container">
+<h2 class="sc-page-title">Usuarios</h2>
+<section class="sc-card">
+<p class="sc-alert" role="status" th:if="${exito}" th:text="${exito}">
+</p>
+<p class="sc-alert sc-alert-error" role="alert" th:if="${error}" th:text="${error}">
+</p>
+<h3 class="sc-card-title">Administración de cuentas</h3>
+<p class="sc-description">Edita datos, desactiva accesos y reactiva cuentas conservando su historial.</p>
+<form class="sc-toolbar" method="get" th:action="@{/jefe/usuarios}">
+<div class="sc-field">
+<label class="sc-label" for="q">Nombre o correo</label>
+<input class="sc-input" id="q" name="q" maxlength="100" th:value="${q}">
+</div>
+<button class="sc-btn">Buscar</button>
+</form>
+<a class="sc-btn" th:href="@{/jefe/horarios#cuentas-medicas}">Crear acceso médico</a>
+<div class="sc-table-scroll">
+<table class="sc-table">
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Correo</th>
+<th>Rol</th>
+<th>Estado</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="u : ${usuarios}">
+<td th:text="${u.nombres + ' ' + u.apellidos}">
+</td>
+<td th:text="${u.correo}">
+</td>
+<td th:text="${u.rol}">
+</td>
+<td th:text="${u.activo ? 'Activo' : 'Inactivo'}">
+</td>
+<td>
+<div class="sc-row-actions"><a class="sc-btn sc-btn-small sc-btn-secondary" th:href="@{/jefe/usuarios/{tipo}/{id}/editar(tipo=${u.tipo},id=${u.id})}">Editar</a><a class="sc-btn sc-btn-small" th:classappend="${u.activo} ? 'sc-btn-danger'" th:href="@{/jefe/usuarios/{tipo}/{id}/estado(tipo=${u.tipo},id=${u.id})}" th:text="${u.activo ? 'Dar de baja' : 'Reactivar'}">
+</a></div>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="sc-empty" th:if="${#lists.isEmpty(usuarios)}">No se encontraron usuarios.</p>
+</div>
+<div class="sc-toolbar">
+<a th:if="${pagina > 0}" th:href="@{/jefe/usuarios(q=${q},pagina=${pagina - 1})}">Anterior</a>
+<span th:text="${'Página ' + (pagina + 1)}">
+</span>
+<a th:if="${hayMas}" th:href="@{/jefe/usuarios(q=${q},pagina=${pagina + 1})}">Siguiente</a>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body>
+</html>

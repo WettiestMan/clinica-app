@@ -6,93 +6,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaludCitas - 2 · Confirmar Reserva</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
+        body { font-family: 'Poppins', sans-serif; }
     </style>
 </head>
 
-<body class="bg-[#F4F6F6] min-h-screen flex items-center justify-center p-6">
-    <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-xl w-full border border-gray-100">
+<body class="sc-layout">
+    <aside th:replace="~{fragments/sidebar :: sidebar('agendar')}"></aside>
 
-        <!-- Barra de Progreso -->
-        <div class="grid grid-cols-4 gap-3 mb-6">
-            <div><span class="text-xs font-medium text-zinc-400">1 · Buscar</span>
-                <div class="h-2 bg-[#3B8272] rounded-full mt-1"></div>
-            </div>
-            <div><span class="text-xs font-bold text-black">2 · Confirmar</span>
-                <div class="h-2 bg-[#3B8272] rounded-full mt-1"></div>
-            </div>
-            <div><span class="text-xs font-medium text-zinc-400">3 · Pagar</span>
-                <div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div>
-            </div>
-            <div><span class="text-xs font-medium text-zinc-400">4 · Ticket</span>
-                <div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div>
-            </div>
-        </div>
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-        <h3 class="text-2xl font-bold text-black mb-1">Resumen de la Cita</h3>
-        <p class="text-zinc-500 text-sm mb-6">Verifica los datos antes de continuar al pago.</p>
+        <main class="sc-content">
+            <div class="sc-container sc-container-narrow">
 
-        <!-- Tarjeta de Resumen -->
-        <div class="bg-[#F8F9FA] rounded-2xl p-5 space-y-3.5 border border-zinc-100 mb-6">
-            <div class="flex justify-between text-sm">
-                <span class="text-zinc-500">Médico:</span>
-                <span class="font-semibold text-black"
-                    th:text="${turno.medico.nombres + ' ' + turno.medico.apellidos}">Dr. Tello</span>
-            </div>
-            <div class="flex justify-between text-sm">
-                <span class="text-zinc-500">Especialidad:</span>
-                <span class="font-semibold text-black" th:text="${turno.medico.especialidad.nombre}">Cardiología</span>
-            </div>
+                <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-xl w-full border border-gray-100 mx-auto">
 
-            <div class="flex justify-between text-sm">
-                <span class="text-zinc-500">Consultorio:</span>
-                <span class="font-semibold text-black"
-                    th:text="${turno.consultorio != null ? turno.consultorio : 'Por asignar en admisión'}">
-                    Cons. 201 (Torre B)
-                </span>
-            </div>
+                    <!-- Barra de Progreso -->
+                    <div class="grid grid-cols-4 gap-3 mb-6">
+                        <div>
+                            <span class="text-xs font-medium text-zinc-400">1 · Buscar</span>
+                            <div class="h-2 bg-[#3B8272] rounded-full mt-1"></div>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-black">2 · Confirmar</span>
+                            <div class="h-2 bg-[#3B8272] rounded-full mt-1"></div>
+                        </div>
+                        <div>
+                            <span class="text-xs font-medium text-zinc-400">3 · Pagar</span>
+                            <div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div>
+                        </div>
+                        <div>
+                            <span class="text-xs font-medium text-zinc-400">4 · Ticket</span>
+                            <div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div>
+                        </div>
+                    </div>
 
-            <div class="flex justify-between text-sm">
-                <span class="text-zinc-500">Fecha y Hora:</span>
-                <span class="font-semibold text-[#2D735C]"
-                    th:text="${#temporals.format(turno.fecha, 'dd/MM/yyyy') + ' a las ' + #temporals.format(turno.horaInicio, 'HH:mm')}">
-                    24/10/2026 a las 08:30
-                </span>
-            </div>
-            <div class="flex justify-between text-sm">
-                <span class="text-zinc-500">Duración:</span>
-                <span class="font-semibold text-black" th:text="${turno.duracionMinutos + ' min'}">30 min</span>
-            </div>
-            <div class="border-t border-zinc-200 pt-3 flex justify-between items-center text-base">
-                <span class="font-medium text-black">Importe Total:</span>
-                <span class="font-bold text-xl text-[#2D735C]">
-                    S/ <span th:text="${#numbers.formatDecimal(monto, 1, 2)}">70.00</span>
-                </span>
-            </div>
-        </div>
+                    <h3 class="text-2xl font-bold text-black mb-1">Resumen de la Cita</h3>
+                    <p class="text-zinc-500 text-sm mb-6">Verifica los datos antes de continuar al pago.</p>
 
-        <!-- Acciones: Regresar vs Proceder -->
-        <div class="flex items-center gap-4">
-            <!-- 1. Regresar: enlace simple GET que no afecta la BD -->
-            <a th:href="@{/citas/agendar}"
-                class="w-1/2 py-3 rounded-xl border border-zinc-300 text-center font-medium text-zinc-700 hover:bg-zinc-50 transition">
-                Regresar
-            </a>
+                    <!-- Tarjeta de Resumen -->
+                    <div class="bg-[#F8F9FA] rounded-2xl p-5 space-y-3.5 border border-zinc-100 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-zinc-500">Médico:</span>
+                            <span class="font-semibold text-black"
+                                  th:text="${turno.medico.nombres + ' ' + turno.medico.apellidos}">Dr. Tello</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-zinc-500">Especialidad:</span>
+                            <span class="font-semibold text-black" th:text="${turno.medico.especialidad.nombre}">Cardiología</span>
+                        </div>
 
-            <!-- 2. Proceder al pago: formulario POST que inicia el bloqueo temporal de 15 minutos -->
-            <form th:action="@{/citas/iniciar-pago}" method="post" class="w-1/2">
-                <input type="hidden" name="turnoId" th:value="${turno.id}">
-                <button type="submit"
-                    class="w-full py-3 bg-[#2D735C] hover:bg-[#235b49] text-white rounded-xl text-center font-medium transition shadow-sm">
-                    Proceder al Pago
-                </button>
-            </form>
-        </div>
+                        <!-- Consultorio Asignado -->
+                        <div class="flex justify-between text-sm">
+                            <span class="text-zinc-500">Consultorio:</span>
+                            <span class="font-semibold text-black"
+                                  th:text="${turno.consultorio != null ? turno.consultorio : (turno.consultorioVisible != null ? turno.consultorioVisible : 'Por asignar en admisión')}">
+                                Cons. 201 (Torre B)
+                            </span>
+                        </div>
 
+                        <div class="flex justify-between text-sm">
+                            <span class="text-zinc-500">Fecha y Hora:</span>
+                            <span class="font-semibold text-[#2D735C]"
+                                  th:text="${#temporals.format(turno.fecha, 'dd/MM/yyyy') + ' a las ' + #temporals.format(turno.horaInicio, 'HH:mm')}">
+                                24/10/2026 a las 08:30
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-zinc-500">Duración:</span>
+                            <span class="font-semibold text-black" th:text="${turno.duracionMinutos + ' min'}">30 min</span>
+                        </div>
+
+                        <div class="border-t border-zinc-200 pt-3 flex justify-between items-center text-base">
+                            <span class="font-medium text-black">Importe Total:</span>
+                            <span class="font-bold text-xl text-[#2D735C]">
+                                S/ <span th:text="${#numbers.formatDecimal(monto, 1, 2)}">70.00</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje de error de asunto si aplica -->
+                    <p class="sc-alert sc-alert-error" role="alert" th:if="${errorAsunto}" th:text="${errorAsunto}"></p>
+
+                    <!-- Campo Asunto (opcional) -->
+                    <div class="sc-field sc-reserva-asunto mb-6">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1" for="asunto">Asunto de la cita (opcional)</label>
+                        <textarea class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white"
+                                  id="asunto" name="asunto" form="formIniciarPago" rows="3" maxlength="500"
+                                  th:text="${asunto}" aria-describedby="ayudaAsunto" placeholder="Por ejemplo: control de presión arterial"></textarea>
+                        <p class="text-xs text-zinc-400 mt-1" id="ayudaAsunto">Describe brevemente el motivo de tu consulta. Máximo 500 caracteres.</p>
+                    </div>
+
+                    <!-- Acciones: Regresar vs Proceder -->
+                    <div class="flex items-center gap-4">
+                        <!-- 1. Regresar -->
+                        <a th:href="@{/citas/agendar}"
+                           class="w-1/2 py-3 rounded-xl border border-zinc-300 text-center font-medium text-zinc-700 hover:bg-zinc-50 transition">
+                            Regresar
+                        </a>
+
+                        <!-- 2. Proceder al pago -->
+                        <form id="formIniciarPago" th:action="@{/citas/iniciar-pago}" method="post" class="w-1/2">
+                            <input type="hidden" name="turnoId" th:value="${turno.id}">
+                            <button type="submit"
+                                    class="w-full py-3 bg-[#2D735C] hover:bg-[#235b49] text-white rounded-xl text-center font-medium transition shadow-sm">
+                                Proceder al Pago
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
     </div>
 </body>
 

@@ -2,101 +2,111 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaludCitas - 3 · Pagar Cita</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Poppins', sans-serif; }</style>
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
 </head>
-<body class="bg-[#F4F6F6] min-h-screen flex items-center justify-center p-6">
-    <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-xl w-full">
-        
-        <!-- Barra de Progreso -->
-        <div class="grid grid-cols-4 gap-3 mb-6">
-            <div><span class="text-xs font-medium text-zinc-400">1 · Buscar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
-            <div><span class="text-xs font-medium text-zinc-400">2 · Confirmar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
-            <div><span class="text-xs font-medium text-black">3 · Pagar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
-            <div><span class="text-xs font-medium text-zinc-400">4 · Ticket</span><div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div></div>
-        </div>
+<body class="sc-layout">
+    <aside th:replace="~{fragments/sidebar :: sidebar('agendar')}"></aside>
 
-        <!-- Banner del Temporizador (RF-04) -->
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between mb-6">
-            <div>
-                <p class="text-xs text-amber-800 font-medium">Turno bloqueado temporalmente</p>
-                <p class="text-xs text-amber-600">Completa el pago antes de que expire la reserva.</p>
-            </div>
-            <div id="cronometro" class="text-xl font-bold text-amber-800 tracking-wider">15:00</div>
-        </div>
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-        <h3 class="text-2xl font-bold text-black mb-1">Pago de prueba</h3>
-        <p class="text-zinc-500 text-sm mb-6">Monto a pagar: <strong class="text-black" th:text="${'S/ ' + cita.monto}"></strong></p>
+        <main class="sc-content">
+            <div class="sc-container sc-container-narrow">
 
-        <p class="text-amber-800 text-xs mb-4">Demostración académica: no se realizan cobros reales. Requiere activar clinica.pago.simulado.</p>
-        
-        <form th:action="@{/citas/procesar-pago}" method="post" id="formPago" class="space-y-4">
-            <input type="hidden" name="citaId" th:value="${cita.id}">
-            <input type="hidden" name="metodoPago" value="TARJETA_CREDITO_DEBITO">
+                <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-xl w-full mx-auto border border-gray-100">
+                    
+                    <!-- Barra de Progreso -->
+                    <div class="grid grid-cols-4 gap-3 mb-6">
+                        <div><span class="text-xs font-medium text-zinc-400">1 · Buscar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
+                        <div><span class="text-xs font-medium text-zinc-400">2 · Confirmar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
+                        <div><span class="text-xs font-bold text-black">3 · Pagar</span><div class="h-2 bg-[#3B8272] rounded-full mt-1"></div></div>
+                        <div><span class="text-xs font-medium text-zinc-400">4 · Ticket</span><div class="h-2 bg-[#E5E7EB] rounded-full mt-1"></div></div>
+                    </div>
 
-            <!-- Campo Número de Tarjeta -->
-            <div>
-                <label class="text-zinc-600 text-sm font-medium">Número de Tarjeta</label>
-                <input type="text" id="numeroTarjeta" name="numeroTarjeta" placeholder="1234 5678 9012 3456" maxlength="19" required
-                       class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none tracking-widest font-mono">
-                <span id="errorTarjeta" class="hidden text-xs text-red-600 font-medium mt-1">Ingresa los 16 dígitos de la tarjeta.</span>
-            </div>
+                    <!-- Banner del Temporizador (RF-04) -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between mb-6">
+                        <div>
+                            <p class="text-xs text-amber-800 font-medium">Turno bloqueado temporalmente</p>
+                            <p class="text-xs text-amber-600">Completa el pago antes de que expire la reserva.</p>
+                        </div>
+                        <div id="cronometro" class="text-xl font-bold text-amber-800 tracking-wider font-mono">15:00</div>
+                    </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <!-- Campo Vencimiento MM/AA -->
-                <div>
-                    <label class="text-zinc-600 text-sm font-medium">Vencimiento</label>
-                    <input type="text" id="fechaVencimiento" placeholder="MM/AA" maxlength="5" required
-                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none text-center font-mono">
-                    <span id="errorVencimiento" class="hidden text-xs text-red-600 font-medium mt-1">Tarjeta vencida o mes no válido.</span>
+                    <h3 class="text-2xl font-bold text-black mb-1">Pago de prueba</h3>
+                    <p class="text-zinc-500 text-sm mb-6">Monto a pagar: <strong class="text-black" th:text="${'S/ ' + #numbers.formatDecimal(cita.monto, 1, 2)}">S/ 70.00</strong></p>
+
+                    <p class="text-amber-800 text-xs mb-4">Demostración académica: no se realizan cobros reales. Requiere activar clinica.pago.simulado.</p>
+                    
+                    <form th:action="@{/citas/procesar-pago}" method="post" id="formPago" class="space-y-4">
+                        <input type="hidden" name="citaId" th:value="${cita.id}">
+                        <input type="hidden" name="metodoPago" value="TARJETA_CREDITO_DEBITO">
+
+                        <!-- Campo Número de Tarjeta -->
+                        <div>
+                            <label class="text-zinc-600 text-sm font-medium">Número de Tarjeta</label>
+                            <input type="text" id="numeroTarjeta" name="numeroTarjeta" placeholder="1234 5678 9012 3456" maxlength="19" required
+                                   class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none tracking-widest font-mono">
+                            <span id="errorTarjeta" class="hidden text-xs text-red-600 font-medium mt-1">Ingresa los 16 dígitos de la tarjeta.</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Campo Vencimiento MM/AA -->
+                            <div>
+                                <label class="text-zinc-600 text-sm font-medium">Vencimiento</label>
+                                <input type="text" id="fechaVencimiento" placeholder="MM/AA" maxlength="5" required
+                                       class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none text-center font-mono">
+                                <span id="errorVencimiento" class="hidden text-xs text-red-600 font-medium mt-1">Tarjeta vencida o mes no válido.</span>
+                            </div>
+
+                            <!-- Campo CVV -->
+                            <div>
+                                <label class="text-zinc-600 text-sm font-medium">CVV</label>
+                                <input type="password" id="cvv" maxlength="3" placeholder="•••" required
+                                       class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none text-center font-mono">
+                                <span id="errorCvv" class="hidden text-xs text-red-600 font-medium mt-1">Requiere 3 dígitos.</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btnPagar"
+                                class="w-full mt-4 py-3.5 bg-[#2D735C] text-white font-medium rounded-xl hover:bg-[#235b49] transition shadow-sm">
+                            Pagar y Emitir Cita Médica
+                        </button>
+                    </form>
                 </div>
 
-                <!-- Campo CVV -->
-                <div>
-                    <label class="text-zinc-600 text-sm font-medium">CVV</label>
-                    <input type="password" id="cvv" maxlength="3" placeholder="•••" required
-                           class="w-full mt-1 bg-[#F3F4F6] text-sm px-4 py-3 rounded-xl border border-transparent focus:border-zinc-400 outline-none text-center font-mono">
-                    <span id="errorCvv" class="hidden text-xs text-red-600 font-medium mt-1">Requiere 3 dígitos.</span>
-                </div>
             </div>
-
-            <button type="submit" id="btnPagar"
-                    class="w-full mt-4 py-3.5 bg-[#2D735C] text-white font-medium rounded-xl hover:bg-[#235b49] transition shadow-sm">
-                Pagar y Emitir Cita Médica
-            </button>
-        </form>
+        </main>
     </div>
 
-    <script>
-        // -------------------------------------------------------------
-        // 1. FORMATEO Y RESTRICCIÓN DE NÚMERO DE TARJETA (XXXX XXXX XXXX XXXX)
-        // -------------------------------------------------------------
+    <!-- Script de Validación Interactiva y Cronómetro -->
+    <script th:inline="javascript">
+        // 1. Formateo y restricción de número de tarjeta
         const inputTarjeta = document.getElementById('numeroTarjeta');
         const errorTarjeta = document.getElementById('errorTarjeta');
 
         inputTarjeta.addEventListener('input', (e) => {
-            // Solo permitir números y eliminar cualquier otro caracter
             let valor = e.target.value.replace(/\D/g, '');
-            
-            // Máximo 16 dígitos reales
             if (valor.length > 16) valor = valor.substring(0, 16);
 
-            // Agrupar en bloques de 4 separados por un espacio
             const partes = valor.match(/.{1,4}/g);
             e.target.value = partes ? partes.join(' ') : '';
 
-            // Ocultar error mientras tipea
             if (valor.length === 16) {
                 errorTarjeta.classList.add('hidden');
                 inputTarjeta.classList.remove('border-red-400');
             }
         });
 
-        // -------------------------------------------------------------
-        // 2. FORMATEO Y VALIDACIÓN DE VENCIMIENTO (MM/AA)
-        // -------------------------------------------------------------
+        // 2. Formateo y validación de vencimiento (MM/AA)
         const inputVencimiento = document.getElementById('fechaVencimiento');
         const errorVencimiento = document.getElementById('errorVencimiento');
 
@@ -121,25 +131,19 @@
             const mes = parseInt(mesStr, 10);
             const anio = parseInt('20' + anioStr, 10);
 
-            // Validar rango de meses
             if (mes < 1 || mes > 12) return false;
 
             const ahora = new Date();
             const anioActual = ahora.getFullYear();
-            const mesActual = ahora.getMonth() + 1; // getMonth() retorna 0-11
+            const mesActual = ahora.getMonth() + 1;
 
-            // Si el año es menor al actual, ya venció
             if (anio < anioActual) return false;
-
-            // Si es el año en curso, el mes no puede ser menor al actual
             if (anio === anioActual && mes < mesActual) return false;
 
             return true;
         }
 
-        // -------------------------------------------------------------
-        // 3. VALIDACIÓN CVV (Solo números)
-        // -------------------------------------------------------------
+        // 3. Validación CVV
         const inputCvv = document.getElementById('cvv');
         const errorCvv = document.getElementById('errorCvv');
 
@@ -151,30 +155,25 @@
             }
         });
 
-        // -------------------------------------------------------------
-        // 4. VALIDACIÓN PREVENTIVA ANTES DE ENVIAR EL FORMULARIO
-        // -------------------------------------------------------------
+        // 4. Validación al enviar el formulario
         const formPago = document.getElementById('formPago');
 
         formPago.addEventListener('submit', (e) => {
             let esValido = true;
-
-            // Validar exactamente 16 dígitos en tarjeta
             const digitosTarjeta = inputTarjeta.value.replace(/\D/g, '');
+
             if (digitosTarjeta.length !== 16) {
                 errorTarjeta.classList.remove('hidden');
                 inputTarjeta.classList.add('border-red-400');
                 esValido = false;
             }
 
-            // Validar vigencia de tarjeta
             if (!esFechaValida(inputVencimiento.value)) {
                 errorVencimiento.classList.remove('hidden');
                 inputVencimiento.classList.add('border-red-400');
                 esValido = false;
             }
 
-            // Validar CVV
             if (inputCvv.value.length !== 3) {
                 errorCvv.classList.remove('hidden');
                 inputCvv.classList.add('border-red-400');
@@ -182,28 +181,36 @@
             }
 
             if (!esValido) {
-                e.preventDefault(); // Detener el submit si alguna regla falló
+                e.preventDefault();
             }
         });
 
-        // -------------------------------------------------------------
-        // 5. CRONÓMETRO DE EXPIRACIÓN (15 MINUTOS)
-        // -------------------------------------------------------------
-        let tiempoRestante = 15 * 60;
+        // 5. Cronómetro sincronizado con backend
+        const vencimiento = /*[[${expiracionEpoch}]]*/ 0;
         const cronometro = document.getElementById('cronometro');
+        const destino = /*[[@{/citas/agendar(error='tiempo_expirado')}]]*/ '/citas/agendar?error=tiempo_expirado';
+        let intervalo;
 
-        const intervalo = setInterval(() => {
-            const minutos = Math.floor(tiempoRestante / 60);
-            const segundos = tiempoRestante % 60;
+        function actualizarTiempo() {
+            let restante;
+            if (vencimiento > 0) {
+                restante = Math.max(0, Math.ceil((vencimiento - Date.now()) / 1000));
+            } else {
+                restante = 15 * 60;
+            }
+
+            const minutos = Math.floor(restante / 60);
+            const segundos = restante % 60;
             cronometro.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
 
-            if (tiempoRestante <= 0) {
+            if (vencimiento > 0 && restante <= 0) {
                 clearInterval(intervalo);
-                alert("El tiempo de 15 minutos ha expirado. El turno será liberado.");
-                window.location.href = "/citas/agendar?error=tiempo_expirado";
+                window.location.replace(destino);
             }
-            tiempoRestante--;
-        }, 1000);
+        }
+
+        actualizarTiempo();
+        intervalo = setInterval(actualizarTiempo, 1000);
     </script>
 </body>
 </html>

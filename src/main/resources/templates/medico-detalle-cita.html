@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Detalle de cita')}"></head>
+<body class="sc-layout" th:with="rolVista='MEDICO'">
+<aside th:replace="~{fragments/sidebar :: sidebar('agenda')}"></aside>
+<div class="sc-workspace"><header th:replace="~{fragments/navbar :: navbar}"></header>
+<main class="sc-content"><div class="sc-container">
+<h2 class="sc-page-title">Detalle de cita</h2>
+<section class="sc-card">
+<div class="sc-section-header"><h3 class="sc-card-title" th:text="${cita.codigoVisible}"></h3><span class="sc-badge" th:text="${cita.estado}"></span></div>
+<div class="sc-grid">
+<div class="sc-detalle-dato"><span class="sc-label">Paciente</span><strong th:text="${cita.paciente.nombres + ' ' + cita.paciente.apellidos}"></strong></div>
+<div class="sc-detalle-dato"><span class="sc-label">Especialidad</span><strong th:text="${cita.turno.medico.especialidad.nombre}"></strong></div>
+<div class="sc-detalle-dato"><span class="sc-label">Fecha y hora</span><strong th:text="${#temporals.format(cita.turno.fecha, 'dd/MM/yyyy') + ' · ' + #temporals.format(cita.turno.horaInicio, 'HH:mm') + ' a ' + #temporals.format(cita.turno.horaFin, 'HH:mm')}"></strong></div>
+<div class="sc-detalle-dato"><span class="sc-label">Consultorio</span><strong th:text="${cita.turno.consultorioVisible}"></strong></div>
+<div class="sc-detalle-dato sc-span-all"><span class="sc-label">Asunto</span><p class="sc-asunto" th:text="${cita.asuntoVisible}"></p></div>
+</div>
+<div class="sc-actions"><a class="sc-btn sc-btn-secondary" th:href="@{/medico/agenda(fecha=${cita.turno.fecha})}">Volver a mi agenda</a></div>
+</section></div></main></div>
+</body></html>

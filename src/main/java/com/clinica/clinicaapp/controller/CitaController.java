@@ -13,9 +13,12 @@ import com.clinica.clinicaapp.service.ConstanciaPdf;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -62,13 +65,18 @@ public class CitaController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
             Model model) {
 
-        LocalDate desde = fechaDesde != null ? fechaDesde : LocalDate.now();
+        ZoneId zonaLima = ZoneId.of("America/Lima");
+        LocalDate desde = fechaDesde != null ? fechaDesde : LocalDate.now(zonaLima);
         LocalDate hasta = fechaHasta != null ? fechaHasta : desde.plusDays(6);
 
         Map<Object, List<Turno>> turnosPorMedico = new LinkedHashMap<>();
 
         if (especialidadId != null) {
-            List<Turno> turnos = turnoRepository.buscarTurnosDisponibles(especialidadId, desde, hasta);
+            LocalDateTime ahora = LocalDateTime.now(zonaLima);
+            List<Turno> turnos = turnoRepository.buscarTurnosDisponibles(especialidadId, desde, hasta)
+                    .stream()
+                    .filter(t -> t.getFecha().atTime(t.getHoraInicio()).isAfter(ahora))
+                    .toList();
 
             turnosPorMedico = turnos.stream().collect(
                     Collectors.groupingBy(
@@ -103,7 +111,7 @@ public class CitaController {
         }
 
         Turno turno = turnoRepository.findById(turnoId).orElse(null);
-        if (turno == null || !"DISPONIBLE".equals(turno.getEstado())) {
+        if (turno == null || !turno.isActivo() || !"DISPONIBLE".equals(turno.getEstado())) {
             return "redirect:/citas/agendar?error=ocupado";
         }
 
@@ -117,7 +125,9 @@ public class CitaController {
     @PostMapping("/iniciar-pago")
     public String iniciarPago(
             @RequestParam Long turnoId,
-            HttpSession session) {
+            @RequestParam(defaultValue = "") String asunto,
+            HttpSession session, 
+            Model model) {
 
         Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
 
@@ -126,8 +136,18 @@ public class CitaController {
         }
 
         try {
-            Cita cita = citaService.iniciarProcesoEmision(turnoId, paciente);
+            Cita cita;
+            if (asunto != null && !asunto.isBlank()) {
+                cita = citaService.iniciarProcesoEmision(turnoId, paciente, asunto);
+            } else {
+                cita = citaService.iniciarProcesoEmision(turnoId, paciente);
+            }
             return "redirect:/citas/pago/" + cita.getId();
+
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("errorAsunto", ex.getMessage());
+            model.addAttribute("asunto", asunto);
+            return confirmarReserva(turnoId, session, model);
         } catch (IllegalStateException ex) {
             return "redirect:/citas/agendar?error=ocupado";
         }
@@ -156,6 +176,8 @@ public class CitaController {
         }
 
         model.addAttribute("cita", cita);
+        model.addAttribute("expiracionEpoch", cita.getFechaBloqueoExpiracion() == null ? 0L
+                : cita.getFechaBloqueoExpiracion().atZone(ZoneId.of("America/Lima")).toInstant().toEpochMilli());
         return "pago-cita";
     }
 
@@ -164,7 +186,8 @@ public class CitaController {
             @RequestParam Long citaId,
             @RequestParam String numeroTarjeta,
             @RequestParam String metodoPago,
-            HttpSession session) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
         Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
 
@@ -178,6 +201,10 @@ public class CitaController {
             return "redirect:/citas/mis-citas";
         }
 
+        if ("CONFIRMADA".equals(cita.getEstado()) || "REPROGRAMADA".equals(cita.getEstado())) {
+            return "redirect:/citas/comprobante/" + citaId;
+        }
+
         if (!"EN_PROCESO".equals(cita.getEstado())) {
             return "redirect:/citas/agendar?error=cita_invalida";
         }
@@ -186,7 +213,8 @@ public class CitaController {
             Cita citaEmitida = citaService.confirmarPagoYEmision(citaId, numeroTarjeta, metodoPago);
             return "redirect:/citas/comprobante/" + citaEmitida.getId();
         } catch (IllegalStateException ex) {
-            return "redirect:/citas/agendar?error=tiempo_expirado";
+            redirectAttributes.addFlashAttribute("mensajeError", ex.getMessage());
+            return "redirect:/citas/agendar";
         }
     }
 
@@ -222,9 +250,6 @@ public class CitaController {
         return "comprobante-cita";
     }
 
-    // ==============================================================
-    // ENDPOINT: DESCARGA DE CONSTANCIA / BOLETA EN PDF
-    // ==============================================================
     @GetMapping("/descargar-constancia/{citaId}")
     public ResponseEntity<byte[]> descargarConstancia(
             @PathVariable Long citaId,
@@ -313,6 +338,10 @@ public class CitaController {
             return "redirect:/citas/mis-citas";
         }
 
+        LocalDateTime ahora = LocalDateTime.now(ZoneId.of("America/Lima"));
+        boolean activa = Set.of("CONFIRMADA", "REPROGRAMADA", "EMITIDA").contains(cita.getEstado());
+        model.addAttribute("cancelable", activa && cita.getTurno().getFecha().atTime(cita.getTurno().getHoraInicio()).isAfter(ahora));
+        model.addAttribute("reprogramable", activa && !cita.getTurno().getFecha().atTime(cita.getTurno().getHoraInicio()).isBefore(ahora.plusHours(24)));
         model.addAttribute("cita", cita);
         return "detalle-cita";
     }
@@ -345,7 +374,7 @@ public class CitaController {
 
         List<Turno> turnosMedico = turnoRepository.findTurnosByMedicoId(
                 cita.getTurno().getMedico().getId(),
-                LocalDate.now());
+                LocalDate.now(ZoneId.of("America/Lima")));
 
         model.addAttribute("cita", cita);
         model.addAttribute("turnos", turnosMedico);

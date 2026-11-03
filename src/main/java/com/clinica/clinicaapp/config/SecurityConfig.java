@@ -12,8 +12,11 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 
 @Configuration
 public class SecurityConfig {
+
     @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public PasswordEncoder passwordEncoder() { 
+        return new BCryptPasswordEncoder(); 
+    }
 
     @Bean
     public UserDetailsService usuarios(UsuarioPersonalRepository personal, PacienteRepository pacientes) {
@@ -45,9 +48,14 @@ public class SecurityConfig {
                 .exceptionHandling(errores -> errores
                         .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                         .accessDeniedPage("/error-acceso"))
-                .formLogin(formulario -> formulario.loginPage("/login")
-                        .usernameParameter("correo").passwordParameter("password")
-                        .failureUrl("/login?error=credenciales")
+                .formLogin(formulario -> formulario
+                        .loginPage("/login")
+                        .usernameParameter("correo")
+                        .passwordParameter("password")
+                        .failureHandler((request, response, exception) -> {
+                            System.out.println(">>> ERROR REAL DE LOGIN: " + exception.getClass().getSimpleName() + " -> " + exception.getMessage());
+                            response.sendRedirect(request.getContextPath() + "/login?error=credenciales");
+                        })
                         .successHandler((request, response, auth) -> {
                             var session = request.getSession();
                             session.removeAttribute("usuarioLogueado");
@@ -64,7 +72,9 @@ public class SecurityConfig {
                                 if (usuario.getRol() == Rol.MEDICO) {
                                     session.setAttribute("medicoLogueado", usuario.getMedico());
                                     destino = "/medico/agenda";
-                                } else destino = "/jefe/horarios";
+                                } else {
+                                    destino = "/jefe/horarios";
+                                }
                             } else {
                                 session.setAttribute("rol", "PACIENTE");
                                 session.setAttribute("usuarioLogueado", pacientes.findByCorreoIgnoreCase(auth.getName()).orElseThrow());
@@ -72,10 +82,15 @@ public class SecurityConfig {
                             }
                             response.sendRedirect(request.getContextPath() + destino);
                         }))
-                .logout(salida -> salida.logoutUrl("/logout").logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true).deleteCookies("JSESSIONID"));
+                .logout(salida -> salida
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID"));
+
         http.addFilterAfter(new CuentaVigenteFilter(pacientes, personal),
                 org.springframework.security.web.authentication.AnonymousAuthenticationFilter.class);
+
         return http.build();
     }
 }

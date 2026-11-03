@@ -9,6 +9,7 @@ import com.clinica.clinicaapp.service.EmailService;
 import com.clinica.clinicaapp.service.PacienteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -24,15 +25,18 @@ public class AuthController {
     private final EmailService emailService;
     private final TokenRecuperacionRepository tokenRepo;
     private final MedicoRepository medicoRepository;
+    private final PasswordEncoder passwordEncoder; // 1. Inyección de PasswordEncoder
 
     public AuthController(PacienteService pacienteService, 
                           EmailService emailService, 
                           TokenRecuperacionRepository tokenRepo,
-                          MedicoRepository medicoRepository) {
+                          MedicoRepository medicoRepository,
+                          PasswordEncoder passwordEncoder) {
         this.pacienteService = pacienteService;
         this.emailService = emailService;
         this.tokenRepo = tokenRepo;
         this.medicoRepository = medicoRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/login")
@@ -40,38 +44,55 @@ public class AuthController {
         return "login";
     }
 
-    @PostMapping("/login")
-    public String procesarLogin(@RequestParam String correo, 
-                                @RequestParam String password, 
-                                HttpSession session, 
-                                Model model) {
-        // 1. Validar autenticación de Paciente
-        Optional<Paciente> paciente = pacienteService.autenticar(correo, password);
-        if (paciente.isPresent()) {
-            session.setAttribute("usuarioLogueado", paciente.get());
-            session.setAttribute("rol", "PACIENTE");
-            return "redirect:/citas/agendar";
-        }
+    /*@PostMapping("/login")
+public String procesarLogin(@RequestParam String correo, 
+                            @RequestParam String password, 
+                            HttpSession session, 
+                            Model model) {
 
-        // 2. Si no es paciente, verificar si corresponde a un Médico / Jefe Médico
-        Optional<Medico> medicoOpt = medicoRepository.findByCorreo(correo);
-        if (medicoOpt.isPresent()) {
-            Medico medico = medicoOpt.get();
+    String correoNormalizado = correo != null ? correo.trim().toLowerCase() : "";
 
-            if (medico.getPassword() != null && medico.getPassword().equals(password)) {
-                session.setAttribute("usuarioLogueado", medico);
-                
-                if (Boolean.TRUE.equals(medico.getEsJefe())) {
-                    session.setAttribute("rol", "JEFE_MEDICO");
-                    return "redirect:/personal/disponibilidad";
-                } else {
-                    session.setAttribute("rol", "MEDICO");
-                    return "redirect:/personal/mis-citas-asignadas?medicoId=" + medico.getId();
-                }
+    // 1. Paciente
+    Optional<Paciente> paciente = pacienteService.autenticar(correoNormalizado, password);
+    if (paciente.isPresent()) {
+        session.setAttribute("usuarioLogueado", paciente.get());
+        session.setAttribute("rol", "PACIENTE");
+        return "redirect:/citas/agendar";
+    }
+
+    // 2. Médico / Jefe Médico
+    Optional<Medico> medicoOpt = medicoRepository.findByCorreo(correoNormalizado);
+    if (medicoOpt.isEmpty()) {
+        medicoOpt = medicoRepository.findByCorreo(correo != null ? correo.trim() : "");
+    }
+
+    if (medicoOpt.isPresent()) {
+        Medico medico = medicoOpt.get();
+        boolean passOk = false;
+
+        if (medico.getPassword() != null) {
+            String dbPass = medico.getPassword().trim();
+            if (dbPass.startsWith("$2a$") || dbPass.startsWith("$2b$") || dbPass.startsWith("$2y$")) {
+                passOk = passwordEncoder.matches(password, dbPass);
+            } else {
+                passOk = dbPass.equals(password);
             }
         }
-        return "redirect:/login?error=credenciales";
+
+        if (passOk) {
+            session.setAttribute("usuarioLogueado", medico);
+            if (Boolean.TRUE.equals(medico.getEsJefe())) {
+                session.setAttribute("rol", "JEFE_MEDICO");
+                return "redirect:/jefe/horarios";
+            } else {
+                session.setAttribute("rol", "MEDICO");
+                return "redirect:/personal/mis-citas-asignadas?medicoId=" + medico.getId();
+            }
+        }
     }
+
+    return "redirect:/login?error=credenciales";
+}*/
 
     @GetMapping("/registro")
     public String registro() {

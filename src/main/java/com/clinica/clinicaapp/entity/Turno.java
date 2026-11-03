@@ -27,11 +27,6 @@ public class Turno {
     @Column(length = 300)
     private String motivoBaja;
 
-    @Transient
-    public String getConsultorioVisible() {
-        return consultorio == null || consultorio.isBlank() ? "Por asignar" : consultorio;
-    }
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medico_id", nullable = false)
     private Medico medico;
@@ -46,7 +41,7 @@ public class Turno {
     private LocalTime horaFin;
 
     @Column(nullable = false)
-    private Integer duracionMinutos; // Duración fija una vez creado
+    private Integer duracionMinutos;
 
     @Column(length = 50)
     private String consultorio;
@@ -55,13 +50,10 @@ public class Turno {
     private String estado; // "DISPONIBLE", "EN_PROCESO", "OCUPADO"
 
     @Column(nullable = false)
-    private Boolean esSobrecupo = false; // Sobrecupo habilitado por Jefe Médico
+    private Boolean esSobrecupo = false;
 
-    public String getConsultorio() {
-        return consultorio;
-    }
-
-    public void setConsultorio(String consultorio) {
-        this.consultorio = consultorio;
+    @Transient
+    public String getConsultorioVisible() {
+        return consultorio == null || consultorio.isBlank() ? "Por asignar" : consultorio;
     }
 }

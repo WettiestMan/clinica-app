@@ -1,9 +1,18 @@
 package com.clinica.clinicaapp.controller;
 
 import com.clinica.clinicaapp.entity.Rol;
-import com.clinica.clinicaapp.repository.*;
-import com.clinica.clinicaapp.service.*;
-import java.time.*;
+import com.clinica.clinicaapp.repository.EspecialidadRepository;
+import com.clinica.clinicaapp.repository.MedicoRepository;
+import com.clinica.clinicaapp.repository.TurnoRepository;
+import com.clinica.clinicaapp.repository.UsuarioPersonalRepository;
+import com.clinica.clinicaapp.service.DisponibilidadService;
+import com.clinica.clinicaapp.service.PersonalService;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -14,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/jefe")
 public class JefeMedicoController {
+
     private final MedicoRepository medicos;
     private final EspecialidadRepository especialidades;
     private final UsuarioPersonalRepository usuarios;
@@ -21,63 +31,110 @@ public class JefeMedicoController {
     private final PersonalService personal;
     private final DisponibilidadService disponibilidad;
 
-    public JefeMedicoController(MedicoRepository medicos, EspecialidadRepository especialidades,
-            UsuarioPersonalRepository usuarios, TurnoRepository turnos, PersonalService personal,
+    public JefeMedicoController(MedicoRepository medicos,
+            EspecialidadRepository especialidades,
+            UsuarioPersonalRepository usuarios,
+            TurnoRepository turnos,
+            PersonalService personal,
             DisponibilidadService disponibilidad) {
-        this.medicos = medicos; this.especialidades = especialidades; this.usuarios = usuarios;
-        this.turnos = turnos; this.personal = personal; this.disponibilidad = disponibilidad;
+        this.medicos = medicos;
+        this.especialidades = especialidades;
+        this.usuarios = usuarios;
+        this.turnos = turnos;
+        this.personal = personal;
+        this.disponibilidad = disponibilidad;
     }
 
-    @GetMapping("/horarios")
-    public String pantalla(@RequestParam(required = false) Long medicoId,
+    // ==============================================================
+    // 1. PANTALLA PRINCIPAL: TU PROGRAMACIÓN SEMANAL
+    // ==============================================================
+    @GetMapping({ "/horarios", "/disponibilidad" })
+    public String pantallaProgramacionSemanal(
+            @RequestParam(required = false) Long medicoId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaConsulta,
             Model model) {
-        LocalDate dia = fechaConsulta == null ? LocalDate.now(ZoneId.of("America/Lima")) : fechaConsulta;
-        model.addAttribute("ahoraGestion", LocalDateTime.now(ZoneId.of("America/Lima")));
-        model.addAttribute("medicos", medicos.findAllByOrderByApellidosAscNombresAsc());
+
+        ZoneId zonaLima = ZoneId.of("America/Lima");
+        LocalDate hoy = LocalDate.now(zonaLima);
+        LocalDate proximoLunes = hoy.with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+        LocalDate diaConsulta = fechaConsulta == null ? hoy : fechaConsulta;
+
         model.addAttribute("especialidades", especialidades.findAll());
+        model.addAttribute("medicos", medicos.findAllByOrderByApellidosAscNombresAsc());
+        model.addAttribute("proximoLunes", proximoLunes);
+
+        model.addAttribute("ahoraGestion", LocalDateTime.now(zonaLima));
         model.addAttribute("cuentasMedicas", usuarios.findByRolOrderByNombreAsc(Rol.MEDICO));
         model.addAttribute("medicoSeleccionado", medicoId);
-        model.addAttribute("fechaConsulta", dia);
+        model.addAttribute("fechaConsulta", diaConsulta);
         model.addAttribute("turnosAsignados", medicoId == null ? List.of()
-                : turnos.findByMedicoIdAndFechaOrderByHoraInicioAsc(medicoId, dia));
-        return "jefe-horarios";
+                : turnos.findByMedicoIdAndFechaOrderByHoraInicioAsc(medicoId, diaConsulta));
+
+        return "admin/disponibilidad-horaria";
     }
 
-    @PostMapping("/horarios")
-    public String asignar(@RequestParam Long medicoId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime inicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime fin,
-            @RequestParam int minutos, @RequestParam(defaultValue = "") String consultorio, RedirectAttributes redirect) {
+    // ==============================================================
+    // 2. ACCIÓN: PUBLICAR DISPONIBILIDAD SEMANAL (POST)
+    // ==============================================================
+    @PostMapping({ "/horarios/publicar-semanal", "/disponibilidad/publicar" })
+    public String publicarSemanal(
+            @RequestParam Long medicoId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaSemana,
+            @RequestParam List<DayOfWeek> dias,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaFin,
+            @RequestParam String consultorio,
+            RedirectAttributes redirect) {
+
         try {
-            int cantidad = disponibilidad.asignar(medicoId, fecha, inicio, fin, minutos, consultorio);
-            redirect.addFlashAttribute("mensaje", cantidad + " turnos guardados. Se notificó al médico en su agenda.");
-        } catch (IllegalArgumentException ex) { redirect.addFlashAttribute("error", ex.getMessage()); }
-        redirect.addAttribute("medicoId", medicoId);
-        redirect.addAttribute("fechaConsulta", fecha.toString());
+            int totalTurnos = disponibilidad.generarTurnosSemanales(
+                    medicoId, fechaSemana, dias, horaInicio, horaFin, consultorio);
+
+            redirect.addFlashAttribute("exito",
+                    "¡Disponibilidad publicada con éxito! Se han generado " + totalTurnos + " turnos.");
+        } catch (Exception ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+
         return "redirect:/jefe/horarios";
     }
 
+    // ==============================================================
+    // 3. ACCIONES DE MANTENIMIENTO DEL COMPAÑERO
+    // ==============================================================
     @PostMapping("/turnos/{id}/consultorio")
-    public String consultorio(@PathVariable Long id, @RequestParam String consultorio, RedirectAttributes redirect) {
-        var turno = turnos.findById(id).orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));
-        try { disponibilidad.actualizarConsultorio(id, consultorio); redirect.addFlashAttribute("mensaje", "Consultorio actualizado. Se notificó al médico."); }
-        catch (IllegalArgumentException ex) { redirect.addFlashAttribute("error", ex.getMessage()); }
+    public String actualizarConsultorio(
+            @PathVariable Long id,
+            @RequestParam String consultorio,
+            RedirectAttributes redirect) {
+        var turno = turnos.findById(id).orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND));
+        try {
+            disponibilidad.actualizarConsultorio(id, consultorio);
+            redirect.addFlashAttribute("exito", "Consultorio actualizado. Se notificó al médico.");
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
         redirect.addAttribute("medicoId", turno.getMedico().getId());
         redirect.addAttribute("fechaConsulta", turno.getFecha().toString());
         return "redirect:/jefe/horarios";
     }
 
     @PostMapping("/medicos")
-    public String crear(@RequestParam(required = false) Long medicoId,
-            @RequestParam(defaultValue = "") String nombres, @RequestParam(defaultValue = "") String apellidos,
-            @RequestParam(required = false) Long especialidadId, @RequestParam String correo,
-            @RequestParam String password, RedirectAttributes redirect) {
+    public String crearCuentaMedica(
+            @RequestParam(required = false) Long medicoId,
+            @RequestParam(defaultValue = "") String nombres,
+            @RequestParam(defaultValue = "") String apellidos,
+            @RequestParam(required = false) Long especialidadId,
+            @RequestParam String correo,
+            @RequestParam String password,
+            RedirectAttributes redirect) {
         try {
             personal.crearMedico(medicoId, nombres, apellidos, especialidadId, correo, password);
-            redirect.addFlashAttribute("mensaje", "Cuenta médica creada. El médico ya puede iniciar sesión con su correo.");
-        } catch (IllegalArgumentException ex) { redirect.addFlashAttribute("error", ex.getMessage()); }
-        return "redirect:/jefe/horarios#cuentas-medicas";
+            redirect.addFlashAttribute("exito", "Cuenta médica creada exitosamente.");
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/jefe/horarios";
     }
 }

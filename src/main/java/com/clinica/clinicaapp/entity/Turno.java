@@ -27,10 +27,6 @@ public class Turno {
     @Column(length = 300)
     private String motivoBaja;
 
-
-    @Column(length = 60)
-    private String consultorio;
-
     @Transient
     public String getConsultorioVisible() {
         return consultorio == null || consultorio.isBlank() ? "Por asignar" : consultorio;

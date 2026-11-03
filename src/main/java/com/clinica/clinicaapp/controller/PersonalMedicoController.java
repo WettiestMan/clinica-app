@@ -3,19 +3,14 @@ package com.clinica.clinicaapp.controller;
 import com.clinica.clinicaapp.entity.Cita;
 import com.clinica.clinicaapp.entity.Medico;
 import com.clinica.clinicaapp.repository.CitaRepository;
-import com.clinica.clinicaapp.repository.EspecialidadRepository;
 import com.clinica.clinicaapp.repository.MedicoRepository;
-import com.clinica.clinicaapp.service.DisponibilidadService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Controller
@@ -23,73 +18,19 @@ import java.util.List;
 public class PersonalMedicoController {
 
     private final MedicoRepository medicoRepository;
-    private final EspecialidadRepository especialidadRepository;
-    private final DisponibilidadService disponibilidadService;
-    private final CitaRepository citaRepository; // Necesario para listar las citas
+    private final CitaRepository citaRepository;
 
-    public PersonalMedicoController(MedicoRepository medicoRepository, 
-                                    EspecialidadRepository especialidadRepository, 
-                                    DisponibilidadService disponibilidadService,
-                                    CitaRepository citaRepository) {
+    public PersonalMedicoController(MedicoRepository medicoRepository, CitaRepository citaRepository) {
         this.medicoRepository = medicoRepository;
-        this.especialidadRepository = especialidadRepository;
-        this.disponibilidadService = disponibilidadService;
         this.citaRepository = citaRepository;
     }
 
-    // ==========================================
-    // 1. JEFE MÉDICO: Panel de Disponibilidad
-    // ==========================================
-    @GetMapping("/disponibilidad")
-    public String vistaDisponibilidad(Model model) {
-        LocalDate proximoLunes = LocalDate.now().with(DayOfWeek.MONDAY).plusWeeks(1);
-
-        model.addAttribute("especialidades", especialidadRepository.findAll());
-        model.addAttribute("medicos", medicoRepository.findAll());
-        model.addAttribute("proximoLunes", proximoLunes);
-
-        return "admin/disponibilidad-horaria";
-    }
-
-    @PostMapping("/disponibilidad/publicar")
-    public String publicarDisponibilidad(
-            @RequestParam Long medicoId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaSemana,
-            @RequestParam List<String> dias,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaInicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime horaFin,
-            @RequestParam String consultorio, // <--- PARÁMETRO CONSULTORIO
-            RedirectAttributes redirectAttributes) {
-
-        try {
-            List<DayOfWeek> diasEnum = dias.stream()
-                    .map(DayOfWeek::valueOf)
-                    .toList();
-
-            // Llamada con los 6 parámetros
-            int cantidadGenerada = disponibilidadService.generarTurnosSemanales(
-                    medicoId, fechaSemana, diasEnum, horaInicio, horaFin, consultorio
-            );
-
-            redirectAttributes.addFlashAttribute("exito", 
-                    "¡Publicación exitosa! Se han creado " + cantidadGenerada + " turnos en " + consultorio + ".");
-
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-        }
-
-        return "redirect:/personal/disponibilidad";
-    }
-    // ==========================================
-    // 2. MÉDICO: Citas Asignadas (ESTE MÉTODO SOLUCIONA EL 404)
-    // ==========================================
     @GetMapping("/mis-citas-asignadas")
     public String vistaCitasAsignadas(
             @RequestParam(required = false) Long medicoId,
             HttpSession session,
             Model model) {
 
-        // 1. Intentar obtener el médico desde la sesión autenticada
         Object usuario = session.getAttribute("usuarioLogueado");
         Medico medicoActual = null;
 
@@ -97,19 +38,16 @@ public class PersonalMedicoController {
             medicoActual = medicoRepository.findById(m.getId()).orElse(null);
         }
 
-        // 2. Respaldo: si no hay sesión activa pero se pasa un id o se prueba en desarrollo
         if (medicoActual == null && medicoId != null) {
             medicoActual = medicoRepository.findById(medicoId).orElse(null);
         }
 
-        // 3. Si aún es nulo (por ejemplo, entrada directa sin login), redirigir
         if (medicoActual == null) {
             return "redirect:/login";
         }
 
         final Long idFiltro = medicoActual.getId();
 
-        // 4. Filtrar únicamente las citas confirmadas o reprogramadas de este doctor
         List<Cita> citasAsignadas = citaRepository.findAll().stream()
                 .filter(c -> c.getTurno() != null 
                           && c.getTurno().getMedico() != null

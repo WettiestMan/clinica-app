@@ -6,39 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jefatura Médica - Programación Semanal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
+        body { font-family: 'Poppins', sans-serif; }
     </style>
 </head>
 
-<body class="bg-[#F4F6F6] text-gray-800 min-h-screen flex">
+<body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
 
-    <!-- SIDEBAR -->
-    <div th:replace="~{fragments/sidebar-personal :: sidebar(rol='JEFE', activo='disponibilidad')}"></div>
+    <!-- SIDEBAR ESTÁNDAR -->
+    <aside th:replace="~{fragments/sidebar :: sidebar('horarios')}"></aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 overflow-y-auto px-10 py-8">
-        <div class="max-w-6xl mx-auto">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Programación Semanal de Turnos Médicos</h2>
-                <p class="text-sm text-gray-500">Planifica la disponibilidad de la semana entrante para consulta
-                    externa.</p>
-            </div>
+    <!-- ÁREA DE CONTENIDO -->
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-            <div th:if="${exito}"
-                class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium"
-                th:text="${exito}"></div>
-            <div th:if="${error}"
-                class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm font-medium"
-                th:text="${error}"></div>
+        <main class="sc-content">
+            <div class="sc-container">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Programación Semanal de Turnos Médicos</h2>
+                    <p class="text-sm text-gray-500">Planifica la disponibilidad de la semana entrante para consulta externa.</p>
+                </div>
 
-            <!-- ESTRUCTURA EN 2 COLUMNAS (Wireframe) -->
-            <form th:action="@{/personal/disponibilidad/publicar}" method="post" id="formDisponibilidad"
-                class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div th:if="${exito}" class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium" th:text="${exito}"></div>
+                <div th:if="${error}" class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm font-medium" th:text="${error}"></div>
+
+                <!-- Tu formulario intacto de 2 columnas -->
+                <form th:action="@{/jefe/horarios/publicar-semanal}" method="post" id="formDisponibilidad"
+                      class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
                 <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN -->
                 <div class="lg:col-span-7 bg-white rounded-3xl p-7 border border-gray-200 shadow-xs space-y-6">

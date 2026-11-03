@@ -22,19 +22,19 @@ ON CONFLICT (id) DO UPDATE SET
     precio_consulta = EXCLUDED.precio_consulta;
 
 -- =====================================================
--- 2. MÉDICOS (Con credenciales para login y rol de Jefatura)
--- Contraseña encriptada BCrypt para 'password': $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
+-- 2. MÉDICOS (Especialistas clínicos para atención de citas)
+-- Clave encriptada BCrypt para 'password': $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
 -- =====================================================
 INSERT INTO medicos (id, nombres, apellidos, especialidad_id, correo, password, es_jefe) VALUES 
-(1, 'Dr.', 'Tello', 1, 'tello@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', true),          -- Jefe Médico
-(2, 'Dra.', 'Perez', 1, 'perez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),        -- Cardiología
-(3, 'Dr.', 'Ramirez', 2, 'ramirez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),     -- Pediatría
-(4, 'Dra.', 'Mendoza', 3, 'mendoza@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),    -- Medicina General
-(5, 'Dr.', 'Castillo', 4, 'castillo@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),   -- Dermatología
-(6, 'Dr.', 'Vargas', 6, 'vargas@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),       -- Oftalmología
-(7, 'Dra.', 'Salazar', 7, 'salazar@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),    -- Traumatología
-(8, 'Dra.', 'Flores', 8, 'flores@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),      -- Ginecología
-(9, 'Dr.', 'Navarro', 9, 'navarro@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false)      -- Odontología
+(1, 'Dr.', 'Tello', 1, 'tello@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),       -- Cardiología
+(2, 'Dra.', 'Perez', 1, 'perez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),       -- Cardiología
+(3, 'Dr.', 'Ramirez', 2, 'ramirez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),    -- Pediatría
+(4, 'Dra.', 'Mendoza', 3, 'mendoza@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),   -- Medicina General
+(5, 'Dr.', 'Castillo', 4, 'castillo@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),  -- Dermatología
+(6, 'Dr.', 'Vargas', 6, 'vargas@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),      -- Oftalmología
+(7, 'Dra.', 'Salazar', 7, 'salazar@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),   -- Traumatología
+(8, 'Dra.', 'Flores', 8, 'flores@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false),     -- Ginecología
+(9, 'Dr.', 'Navarro', 9, 'navarro@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', false)     -- Odontología
 ON CONFLICT (id) DO UPDATE SET 
     nombres = EXCLUDED.nombres, 
     apellidos = EXCLUDED.apellidos, 
@@ -44,11 +44,12 @@ ON CONFLICT (id) DO UPDATE SET
     es_jefe = EXCLUDED.es_jefe;
 
 -- =====================================================
--- 2.1 USUARIOS PERSONAL (Estructura real sin columna version)
--- Contraseña encriptada BCrypt para 'password': $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
+-- 2.1 USUARIOS PERSONAL (Autenticación en Spring Security)
+-- Cuenta 10: Dirección Médica (Jefe) | Cuentas 1 a 9: Médicos especialistas
 -- =====================================================
 INSERT INTO usuarios_personal (id, medico_id, nombre, correo, password, rol, activo) VALUES
-(1, 1, 'Dr. Tello', 'tello@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'JEFE_MEDICO', true),
+(10, NULL, 'Jefatura Médica', 'jefemedico@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'JEFE_MEDICO', true),
+(1, 1, 'Dr. Tello', 'tello@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
 (2, 2, 'Dra. Perez', 'perez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
 (3, 3, 'Dr. Ramirez', 'ramirez@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
 (4, 4, 'Dra. Mendoza', 'mendoza@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
@@ -58,6 +59,7 @@ INSERT INTO usuarios_personal (id, medico_id, nombre, correo, password, rol, act
 (8, 8, 'Dra. Flores', 'flores@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true),
 (9, 9, 'Dr. Navarro', 'navarro@saludcitas.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'MEDICO', true)
 ON CONFLICT (id) DO UPDATE SET 
+    medico_id = EXCLUDED.medico_id,
     nombre = EXCLUDED.nombre, 
     correo = EXCLUDED.correo, 
     password = EXCLUDED.password, 
@@ -68,7 +70,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- 3. TURNOS (Con asignación de consultorio físico y activo = true)
 -- =====================================================
 
--- --- CARDIOLOGÍA (30 min) ---
+-- --- CARDIOLOGÍA (Dr. Tello [ID 1] y Dra. Perez [ID 2]) ---
 INSERT INTO turnos (id, medico_id, fecha, hora_inicio, hora_fin, duracion_minutos, estado, es_sobrecupo, activo, consultorio) VALUES
 (101, 1, '2026-11-02', '08:30:00', '09:00:00', 30, 'DISPONIBLE', false, true, 'Cons. 101 (Torre A)'),
 (102, 1, '2026-11-02', '09:00:00', '09:30:00', 30, 'DISPONIBLE', false, true, 'Cons. 101 (Torre A)'),

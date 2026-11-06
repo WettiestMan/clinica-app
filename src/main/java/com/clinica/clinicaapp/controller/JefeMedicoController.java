@@ -46,29 +46,79 @@ public class JefeMedicoController {
     }
 
     // ==============================================================
-    // 1. PANTALLA PRINCIPAL: TU PROGRAMACIÓN SEMANAL
+    // 1. PANTALLA PRINCIPAL: TU PROGRAMACIÓN SEMANAL Y MATRIZ
     // ==============================================================
     @GetMapping({ "/horarios", "/disponibilidad" })
     public String pantallaProgramacionSemanal(
             @RequestParam(required = false) Long medicoId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaConsulta,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate semana,
             Model model) {
 
         ZoneId zonaLima = ZoneId.of("America/Lima");
         LocalDate hoy = LocalDate.now(zonaLima);
-        LocalDate proximoLunes = hoy.with(TemporalAdjusters.next(DayOfWeek.MONDAY));
-        LocalDate diaConsulta = fechaConsulta == null ? hoy : fechaConsulta;
+        LocalDate lunesSemana = semana == null
+                ? hoy.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                : semana.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+
+        LocalDate viernesSemana = lunesSemana.plusDays(4);
 
         model.addAttribute("especialidades", especialidades.findAll());
         model.addAttribute("medicos", medicos.findAllByOrderByApellidosAscNombresAsc());
-        model.addAttribute("proximoLunes", proximoLunes);
-
-        model.addAttribute("ahoraGestion", LocalDateTime.now(zonaLima));
-        model.addAttribute("cuentasMedicas", usuarios.findByRolOrderByNombreAsc(Rol.MEDICO));
+        model.addAttribute("proximoLunes", hoy.with(TemporalAdjusters.next(DayOfWeek.MONDAY)));
         model.addAttribute("medicoSeleccionado", medicoId);
-        model.addAttribute("fechaConsulta", diaConsulta);
-        model.addAttribute("turnosAsignados", medicoId == null ? List.of()
-                : turnos.findByMedicoIdAndFechaOrderByHoraInicioAsc(medicoId, diaConsulta));
+        model.addAttribute("lunesActual", lunesSemana);
+        model.addAttribute("semanaAnterior", lunesSemana.minusWeeks(1));
+        model.addAttribute("semanaSiguiente", lunesSemana.plusWeeks(1));
+
+        // Construir la matriz semanal en Backend solo si hay médico seleccionado
+        if (medicoId != null) {
+            medicos.findById(medicoId).ifPresent(m -> model.addAttribute("medicoActual", m));
+            var turnosSemana = turnos.findByMedicoIdAndFechaBetweenAndActivoTrueOrderByHoraInicioAsc(
+                    medicoId, lunesSemana, viernesSemana);
+
+            // Generar cabeceras: Lun 09/11, Mar 10/11, etc.
+            List<String> encabezados = List.of(
+                    "Lun " + lunesSemana.getDayOfMonth() + "/" + lunesSemana.getMonthValue(),
+                    "Mar " + lunesSemana.plusDays(1).getDayOfMonth() + "/" + lunesSemana.plusDays(1).getMonthValue(),
+                    "Mié " + lunesSemana.plusDays(2).getDayOfMonth() + "/" + lunesSemana.plusDays(2).getMonthValue(),
+                    "Jue " + lunesSemana.plusDays(3).getDayOfMonth() + "/" + lunesSemana.plusDays(3).getMonthValue(),
+                    "Vie " + lunesSemana.plusDays(4).getDayOfMonth() + "/" + lunesSemana.plusDays(4).getMonthValue());
+
+            // Armar las filas cada 30 minutos desde 08:00 hasta 18:00
+            List<com.clinica.clinicaapp.dto.ParrillaSemanalDto.FilaMatriz> filas = new java.util.ArrayList<>();
+            LocalTime horaActual = LocalTime.of(8, 0);
+            LocalTime horaLimite = LocalTime.of(22, 0);
+
+            while (horaActual.isBefore(horaLimite)) {
+                LocalTime h = horaActual;
+                List<com.clinica.clinicaapp.dto.ParrillaSemanalDto.CeldaTurno> celdas = new java.util.ArrayList<>();
+
+                for (int d = 0; d < 5; d++) {
+                    LocalDate fechaDia = lunesSemana.plusDays(d);
+
+                    var match = turnosSemana.stream()
+                            .filter(t -> t.getFecha().equals(fechaDia) && t.getHoraInicio().equals(h))
+                            .findFirst();
+
+                    if (match.isPresent()) {
+                        var t = match.get();
+                        String estadoParrilla = "DISPONIBLE".equalsIgnoreCase(t.getEstado()) ? "DISPONIBLE" : "OCUPADO";
+                        celdas.add(new com.clinica.clinicaapp.dto.ParrillaSemanalDto.CeldaTurno(
+                                t.getId(), estadoParrilla, t.getConsultorioVisible(), true));
+                    } else {
+                        celdas.add(new com.clinica.clinicaapp.dto.ParrillaSemanalDto.CeldaTurno(null, "", "", false));
+                    }
+                }
+
+                filas.add(new com.clinica.clinicaapp.dto.ParrillaSemanalDto.FilaMatriz(
+                        h, String.format("%02d:%02d", h.getHour(), h.getMinute()), celdas));
+
+                horaActual = horaActual.plusMinutes(30);
+            }
+
+            model.addAttribute("parrilla",
+                    new com.clinica.clinicaapp.dto.ParrillaSemanalDto(lunesSemana, encabezados, filas));
+        }
 
         return "admin/disponibilidad-horaria";
     }
@@ -138,5 +188,4 @@ public class JefeMedicoController {
         return "redirect:/jefe/horarios";
     }
 
-    
 }

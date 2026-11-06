@@ -34,6 +34,10 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
                       @Param("fin") LocalTime fin);
 
     @EntityGraph(attributePaths = {"medico", "medico.especialidad"})
+
+    List<Turno> findByMedicoIdAndFechaBetweenAndActivoTrueOrderByHoraInicioAsc(
+            Long medicoId, LocalDate fechaInicio, LocalDate fechaFin);
+            
     List<Turno> findByMedicoIdAndFechaOrderByHoraInicioAsc(Long medicoId, LocalDate fecha);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

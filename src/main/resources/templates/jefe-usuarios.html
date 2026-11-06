@@ -1,70 +1,138 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('SaludCitas - Usuarios')}">
 </head>
+
 <body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
-<aside th:replace="~{fragments/sidebar :: sidebar('usuarios')}">
-</aside>
-<div class="sc-workspace">
-<header th:replace="~{fragments/navbar :: navbar}">
-</header>
-<main class="sc-content">
-<div class="sc-container">
-<h2 class="sc-page-title">Usuarios</h2>
-<section class="sc-card">
-<p class="sc-alert" role="status" th:if="${exito}" th:text="${exito}">
-</p>
-<p class="sc-alert sc-alert-error" role="alert" th:if="${error}" th:text="${error}">
-</p>
-<h3 class="sc-card-title">Administración de cuentas</h3>
-<p class="sc-description">Edita datos, desactiva accesos y reactiva cuentas conservando su historial.</p>
-<form class="sc-toolbar" method="get" th:action="@{/jefe/usuarios}">
-<div class="sc-field">
-<label class="sc-label" for="q">Nombre o correo</label>
-<input class="sc-input" id="q" name="q" maxlength="100" th:value="${q}">
-</div>
-<button class="sc-btn">Buscar</button>
-</form>
-<a class="sc-btn" th:href="@{/jefe/horarios#cuentas-medicas}">Crear acceso médico</a>
-<div class="sc-table-scroll">
-<table class="sc-table">
-<thead>
-<tr>
-<th>Nombre</th>
-<th>Correo</th>
-<th>Rol</th>
-<th>Estado</th>
-<th>Acciones</th>
-</tr>
-</thead>
-<tbody>
-<tr th:each="u : ${usuarios}">
-<td th:text="${u.nombres + ' ' + u.apellidos}">
-</td>
-<td th:text="${u.correo}">
-</td>
-<td th:text="${u.rol}">
-</td>
-<td th:text="${u.activo ? 'Activo' : 'Inactivo'}">
-</td>
-<td>
-<div class="sc-row-actions"><a class="sc-btn sc-btn-small sc-btn-secondary" th:href="@{/jefe/usuarios/{tipo}/{id}/editar(tipo=${u.tipo},id=${u.id})}">Editar</a><a class="sc-btn sc-btn-small" th:classappend="${u.activo} ? 'sc-btn-danger'" th:href="@{/jefe/usuarios/{tipo}/{id}/estado(tipo=${u.tipo},id=${u.id})}" th:text="${u.activo ? 'Dar de baja' : 'Reactivar'}">
-</a></div>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="sc-empty" th:if="${#lists.isEmpty(usuarios)}">No se encontraron usuarios.</p>
-</div>
-<div class="sc-toolbar">
-<a th:if="${pagina > 0}" th:href="@{/jefe/usuarios(q=${q},pagina=${pagina - 1})}">Anterior</a>
-<span th:text="${'Página ' + (pagina + 1)}">
-</span>
-<a th:if="${hayMas}" th:href="@{/jefe/usuarios(q=${q},pagina=${pagina + 1})}">Siguiente</a>
-</div>
-</section>
-</div>
-</main>
-</div>
+    <aside th:replace="~{fragments/sidebar :: sidebar('usuarios')}">
+    </aside>
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}">
+        </header>
+        <main class="sc-content">
+            <div class="sc-container">
+                <h2 class="sc-page-title">Usuarios</h2>
+                <section class="sc-card">
+                    <p class="sc-alert" role="status" th:if="${exito}" th:text="${exito}">
+                    </p>
+                    <p class="sc-alert sc-alert-error" role="alert" th:if="${error}" th:text="${error}">
+                    </p>
+
+                    <h3 class="sc-card-title">Administración de cuentas</h3>
+                    <p class="sc-description">Edita datos, desactiva accesos y reactiva cuentas conservando su
+                        historial.</p>
+
+                    <!-- Pestañas de filtrado por Rol -->
+                    <div class="sc-toolbar"
+                        style="margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; gap: 0.5rem;">
+                        <a th:href="@{/jefe/usuarios(q=${q}, rol='TODOS')}" class="sc-btn sc-btn-small"
+                            th:classappend="${rolSeleccionado == null or rolSeleccionado == 'TODOS'} ? 'sc-btn' : 'sc-btn-secondary'">
+                            Todos
+                        </a>
+                        <a th:href="@{/jefe/usuarios(q=${q}, rol='PACIENTE')}" class="sc-btn sc-btn-small"
+                            th:classappend="${rolSeleccionado == 'PACIENTE'} ? 'sc-btn' : 'sc-btn-secondary'">
+                            Pacientes
+                        </a>
+                        <a th:href="@{/jefe/usuarios(q=${q}, rol='MEDICO')}" class="sc-btn sc-btn-small"
+                            th:classappend="${rolSeleccionado == 'MEDICO'} ? 'sc-btn' : 'sc-btn-secondary'">
+                            Cuerpo Médico
+                        </a>
+                        <a th:href="@{/jefe/usuarios(q=${q}, rol='JEFE_MEDICO')}" class="sc-btn sc-btn-small"
+                            th:classappend="${rolSeleccionado == 'JEFE_MEDICO'} ? 'sc-btn' : 'sc-btn-secondary'">
+                            Dirección Médica
+                        </a>
+                    </div>
+
+                    <!-- Buscador (mantiene el filtro de rol actual) -->
+                    <form class="sc-toolbar" method="get" th:action="@{/jefe/usuarios}">
+                        <input type="hidden" name="rol"
+                            th:value="${rolSeleccionado != null ? rolSeleccionado : 'TODOS'}">
+                        <div class="sc-field">
+                            <label class="sc-label" for="q">Nombre o correo</label>
+                            <input class="sc-input" id="q" name="q" maxlength="100" th:value="${q}"
+                                placeholder="Escribe para buscar...">
+                        </div>
+                        <button class="sc-btn" type="submit">Buscar</button>
+                        <a th:if="${q != null and !q.isBlank()}" th:href="@{/jefe/usuarios(rol=${rolSeleccionado})}"
+                            class="sc-btn sc-btn-secondary">Limpiar</a>
+                    </form>
+
+                    <div class="sc-table-scroll">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Correo</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="u : ${usuarios}">
+                                    <td th:text="${u.nombres + ' ' + u.apellidos}"></td>
+                                    <td th:text="${u.correo}"></td>
+                                    <td>
+                                        <span th:text="${u.rol}"
+                                            th:style="${u.rol == 'JEFE_MEDICO' ? 'font-weight: bold; color: #1e3a8a;' : (u.rol == 'MEDICO' ? 'color: #065f46;' : 'color: #374151;')}">
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${u.activo ? 'Activo' : 'Inactivo'}"
+                                            th:style="${u.activo ? 'color: #059669; font-weight: 500;' : 'color: #dc2626; font-weight: 500;'}">
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="sc-row-actions">
+                                            <!-- Botón Editar -->
+                                            <a class="sc-btn sc-btn-small sc-btn-secondary"
+                                                th:href="@{/jefe/usuarios/{tipo}/{id}/editar(tipo=${u.tipo},id=${u.id})}">
+                                                Editar
+                                            </a>
+
+                                            <!-- Protección de cuenta JEFE_MEDICO: no puede darse de baja -->
+                                            <span th:if="${u.rol == 'JEFE_MEDICO'}"
+                                                style="font-size: 0.75rem; color: #6b7280; font-style: italic; align-self: center; padding: 0 0.5rem;">
+                                                Protegido
+                                            </span>
+
+                                            <!-- Botón Dar de baja / Reactivar para roles no directivos -->
+                                            <a th:unless="${u.rol == 'JEFE_MEDICO'}" class="sc-btn sc-btn-small"
+                                                th:classappend="${u.activo} ? 'sc-btn-danger'"
+                                                th:href="@{/jefe/usuarios/{tipo}/{id}/estado(tipo=${u.tipo},id=${u.id})}"
+                                                th:text="${u.activo ? 'Dar de baja' : 'Reactivar'}">
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="sc-empty" th:if="${#lists.isEmpty(usuarios)}">No se encontraron usuarios bajo este
+                            criterio.</p>
+                    </div>
+
+                    <!-- Paginación respetando los filtros de búsqueda y rol -->
+                    <div class="sc-toolbar" style="margin-top: 1rem; justify-content: space-between;">
+                        <a class="sc-btn sc-btn-small sc-btn-secondary" th:if="${pagina > 0}"
+                            th:href="@{/jefe/usuarios(q=${q}, rol=${rolSeleccionado}, pagina=${pagina - 1})}">
+                            &larr; Anterior
+                        </a>
+                        <span th:unless="${pagina > 0}"></span>
+
+                        <span style="align-self: center; font-size: 0.875rem;"
+                            th:text="${'Página ' + (pagina + 1)}"></span>
+
+                        <a class="sc-btn sc-btn-small sc-btn-secondary" th:if="${hayMas}"
+                            th:href="@{/jefe/usuarios(q=${q}, rol=${rolSeleccionado}, pagina=${pagina + 1})}">
+                            Siguiente &rarr;
+                        </a>
+                        <span th:unless="${hayMas}"></span>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
 </body>
+
 </html>

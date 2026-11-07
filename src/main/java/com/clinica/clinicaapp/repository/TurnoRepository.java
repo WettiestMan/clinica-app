@@ -74,4 +74,20 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
             @Param("fechaHoy") LocalDate fechaHoy);
 
     boolean existsByMedicoIdAndFechaAndHoraInicio(Long medicoId, LocalDate fecha, LocalTime horaInicio);
+
+    @Query("""
+        SELECT COUNT(t) > 0 FROM Turno t
+        WHERE t.activo = true
+          AND LOWER(TRIM(t.consultorio)) = LOWER(TRIM(:consultorio))
+          AND t.fecha = :fecha
+          AND t.medico.id <> :medicoId
+          AND t.horaInicio < :fin
+          AND t.horaFin > :inicio
+        """)
+    boolean existeConflictoConsultorio(
+            @Param("consultorio") String consultorio,
+            @Param("fecha") LocalDate fecha,
+            @Param("inicio") LocalTime inicio,
+            @Param("fin") LocalTime fin,
+            @Param("medicoId") Long medicoId);
 }

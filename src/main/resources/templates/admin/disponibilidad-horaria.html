@@ -164,14 +164,31 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-700 mb-1">Consultorio
-                                            Asignado</label>
-                                        <select name="consultorio" id="consultorio" onchange="actualizarResumen()"
+                                            Asignado (*)</label>
+                                        <select name="consultorio" id="consultorio" required
+                                            onchange="actualizarResumen()"
                                             class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white">
-                                            <option value="Consultorio 101 - Torre A">Cons. 101 (Torre A)</option>
-                                            <option value="Consultorio 102 - Torre A">Cons. 102 (Torre A)</option>
-                                            <option value="Consultorio 201 - Torre B" selected>Cons. 201 (Torre B)
-                                            </option>
-                                            <option value="Consultorio 202 - Torre B">Cons. 202 (Torre B)</option>
+                                            <option value="" disabled selected>-- Elige consultorio --</option>
+                                            <optgroup label="Torre A (Piso 1 - Polivalente y Materno-Infantil)">
+                                                <option value="Cons. 101 (Torre A)">Cons. 101 (Torre A) - Polivalente
+                                                </option>
+                                                <option value="Cons. 102 (Torre A)">Cons. 102 (Torre A) - Pediatría /
+                                                    General</option>
+                                                <option value="Cons. 103 (Torre A)">Cons. 103 (Torre A) - Ginecología
+                                                </option>
+                                                <option value="Cons. 104 (Torre A)">Cons. 104 (Torre A) - Cardiología /
+                                                    General</option>
+                                            </optgroup>
+                                            <optgroup label="Torre B (Piso 2 - Especialidades y Procedimientos)">
+                                                <option value="Cons. 201 (Torre B)">Cons. 201 (Torre B) - Odontología
+                                                </option>
+                                                <option value="Cons. 202 (Torre B)">Cons. 202 (Torre B) - Oftalmología
+                                                </option>
+                                                <option value="Cons. 203 (Torre B)">Cons. 203 (Torre B) - Dermatología
+                                                </option>
+                                                <option value="Cons. 204 (Torre B)">Cons. 204 (Torre B) - Traumatología
+                                                </option>
+                                            </optgroup>
                                         </select>
                                     </div>
                                 </div>
@@ -397,14 +414,38 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE CÁLCULO DE FORMULARIO -->
+   <!-- SCRIPT DE CÁLCULO DE FORMULARIO -->
     <script>
+        // ==========================================================
+        // MAPA DE CONSULTORIOS POR DEFECTO SEGÚN ESPECIALIDAD
+        // ==========================================================
+        const CONSULTORIOS_POR_ESPECIALIDAD = {
+            'medicina general': 'Cons. 101 (Torre A)',
+            'pediatria':        'Cons. 102 (Torre A)',
+            'ginecologia':      'Cons. 103 (Torre A)',
+            'cardiologia':      'Cons. 104 (Torre A)',
+            'odontologia':      'Cons. 201 (Torre B)',
+            'oftalmologia':     'Cons. 202 (Torre B)',
+            'dermatologia':     'Cons. 203 (Torre B)',
+            'traumatologia':    'Cons. 204 (Torre B)'
+        };
+
+        // Función auxiliar para comparar sin importar tildes ni mayúsculas
+        function normalizarTexto(texto) {
+            return (texto || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
         // ==========================================================
         // 1. LÓGICA DEL FORMULARIO DE CREACIÓN/PUBLICACIÓN SEMANAL
         // ==========================================================
         function filtrarMedicos() {
             const espSelect = document.getElementById('selectEspecialidad');
             const medSelect = document.getElementById('selectMedico');
+            const consSelect = document.getElementById('consultorio');
             const espId = espSelect.value;
 
             medSelect.value = '';
@@ -429,6 +470,14 @@
                 if (primerDisponible) medSelect.value = primerDisponible.value;
             }
 
+            // Asignación sugerida del consultorio según la especialidad
+            if (espSelect.selectedIndex > 0 && consSelect) {
+                const textoEsp = normalizarTexto(espSelect.options[espSelect.selectedIndex].text);
+                if (CONSULTORIOS_POR_ESPECIALIDAD[textoEsp]) {
+                    consSelect.value = CONSULTORIOS_POR_ESPECIALIDAD[textoEsp];
+                }
+            }
+
             actualizarResumen();
         }
 
@@ -438,7 +487,8 @@
             const horaInicio = document.getElementById('horaInicio').value;
             const horaFin = document.getElementById('horaFin').value;
             const diasMarcados = document.querySelectorAll('input[name="dias"]:checked');
-            const consultorio = document.getElementById('consultorio').value;
+            const consElement = document.getElementById('consultorio');
+            const consultorio = consElement ? consElement.value : '';
             const btnPublicar = document.getElementById('btnPublicar');
 
             let duracion = 30;
@@ -446,10 +496,13 @@
                 duracion = parseInt(espSelect.options[espSelect.selectedIndex].dataset.duracion) || 30;
             }
             document.getElementById('resumenDuracion').textContent = duracion + " min";
-            document.getElementById('resumenConsultorio').textContent = consultorio;
+            document.getElementById('resumenConsultorio').textContent = consultorio || 'Sin asignar';
             document.getElementById('resumenDiasCount').textContent = diasMarcados.length + " día(s)";
 
-            if (!horaInicio || !horaFin) return;
+            if (!horaInicio || !horaFin) {
+                deshabilitarBotonPublicar(btnPublicar);
+                return;
+            }
 
             const [h1, m1] = horaInicio.split(':').map(Number);
             const [h2, m2] = horaFin.split(':').map(Number);
@@ -459,7 +512,7 @@
                 document.getElementById('resumenHoras').textContent = "0.0 h";
                 document.getElementById('resumenCuposDia').textContent = "0";
                 document.getElementById('resumenTurnosTotal').textContent = "0";
-                btnPublicar.disabled = true;
+                deshabilitarBotonPublicar(btnPublicar);
                 return;
             }
 
@@ -474,15 +527,39 @@
             const alertaOptima = document.getElementById('alertaOptima');
             const alertaSobrecarga = document.getElementById('alertaSobrecarga');
 
+            // REGLA: Límite estricto de 5 horas continuas (300 minutos)
             if (minutosTotales > 300) {
                 alertaSobrecarga.classList.remove('hidden');
                 alertaOptima.classList.add('hidden');
+                // Bloquea el botón si supera las 5 horas
+                deshabilitarBotonPublicar(btnPublicar);
+                return;
             } else {
                 alertaSobrecarga.classList.add('hidden');
                 alertaOptima.classList.remove('hidden');
             }
 
-            btnPublicar.disabled = !(medSelect.value && diasMarcados.length > 0 && cuposPorDia > 0);
+            // Validación global para habilitar el botón
+            const formularioCompleto = medSelect.value && diasMarcados.length > 0 && cuposPorDia > 0 && consultorio;
+            if (formularioCompleto) {
+                habilitarBotonPublicar(btnPublicar);
+            } else {
+                deshabilitarBotonPublicar(btnPublicar);
+            }
+        }
+
+        function deshabilitarBotonPublicar(btn) {
+            if (!btn) return;
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+            btn.classList.remove('bg-[#2D735C]', 'hover:bg-[#1E5646]');
+        }
+
+        function habilitarBotonPublicar(btn) {
+            if (!btn) return;
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+            btn.classList.add('bg-[#2D735C]', 'hover:bg-[#1E5646]');
         }
 
         // ==========================================================
@@ -570,4 +647,5 @@
         });
     </script>
 </body>
+
 </html>

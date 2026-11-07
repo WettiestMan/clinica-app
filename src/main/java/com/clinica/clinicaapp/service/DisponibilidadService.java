@@ -73,12 +73,18 @@ public class DisponibilidadService {
             throw new IllegalArgumentException("La hora de fin debe ser posterior a la hora de inicio.");
         }
 
+        // 3. REGLA 1: Límite de jornada laboral continua (Máximo 5 horas = 300 minutos)
+        long duracionTotalMinutos = Duration.between(horaInicio, horaFin).toMinutes();
+        if (duracionTotalMinutos > 300) {
+            throw new IllegalArgumentException("Sobrecarga de turno: la jornada continua no puede exceder las 5 horas (300 minutos).");
+        }
+
         String consultorioValido = validarConsultorio(consultorio);
 
         Medico medico = medicos.findById(medicoId)
                 .orElseThrow(() -> new IllegalArgumentException("El médico seleccionado no existe."));
 
-        // 3. Duración dinámica por especialidad
+        // 4. Duración dinámica por especialidad
         int duracionMinutos = medico.getEspecialidad().getDuracionMinutosDefault();
         if (duracionMinutos <= 0) {
             duracionMinutos = 30;
@@ -86,12 +92,22 @@ public class DisponibilidadService {
 
         List<Turno> turnosNuevos = new ArrayList<>();
 
-        // 4. Iterar sobre los 7 días de la semana a programar
+        // 5. Iterar sobre los 7 días de la semana a programar
         for (int i = 0; i < 7; i++) {
             LocalDate fechaDia = fechaSemanaLunes.plusDays(i);
             DayOfWeek diaSemana = fechaDia.getDayOfWeek();
 
             if (diasSeleccionados.contains(diaSemana)) {
+
+                // REGLA 2: Exclusión mutua de consultorio físico frente a otros médicos
+                boolean consultorioOcupado = turnos.existeConflictoConsultorio(
+                        consultorioValido, fechaDia, horaInicio, horaFin, medicoId);
+                if (consultorioOcupado) {
+                    throw new IllegalArgumentException(String.format(
+                            "Conflicto de infraestructura: El %s ya se encuentra asignado a otro médico el día %s entre las %s y %s.",
+                            consultorioValido, fechaDia, horaInicio, horaFin));
+                }
+
                 LocalTime cursor = horaInicio;
 
                 while (cursor.plusMinutes(duracionMinutos).isBefore(horaFin)
@@ -271,6 +287,13 @@ public class DisponibilidadService {
             throw new IllegalArgumentException("Crea primero la cuenta de acceso de este médico.");
         if (turnos.existsByMedicoIdAndActivoTrueAndFechaAndHoraInicioLessThanAndHoraFinGreaterThan(medicoId, fecha, fin, inicio))
             throw new IllegalArgumentException("El médico ya tiene turnos que se superponen con ese horario.");
+        
+        // ==============================================================
+        // VALIDACIÓN: Exclusión de consultorio frente a otros médicos
+        // ==============================================================
+        if (turnos.existeConflictoConsultorio(consultorio, fecha, inicio, fin, medicoId)) {
+            throw new IllegalArgumentException("El consultorio ya está ocupado por otro médico en ese horario.");
+        }
         
         int cantidad = (int) (duracion / minutos);
         for (int i = 0; i < cantidad; i++) {

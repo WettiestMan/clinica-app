@@ -9,7 +9,6 @@ import com.clinica.clinicaapp.service.DisponibilidadService;
 import com.clinica.clinicaapp.service.PersonalService;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -46,7 +45,7 @@ public class JefeMedicoController {
     }
 
     // ==============================================================
-    // 1. PANTALLA PRINCIPAL: TU PROGRAMACIÓN SEMANAL Y MATRIZ
+    // 1. PANTALLA PRINCIPAL: PROGRAMACIÓN SEMANAL Y MATRIZ
     // ==============================================================
     @GetMapping({ "/horarios", "/disponibilidad" })
     public String pantallaProgramacionSemanal(
@@ -70,13 +69,12 @@ public class JefeMedicoController {
         model.addAttribute("semanaAnterior", lunesSemana.minusWeeks(1));
         model.addAttribute("semanaSiguiente", lunesSemana.plusWeeks(1));
 
-        // Construir la matriz semanal en Backend solo si hay médico seleccionado
+        // Construir la matriz semanal solo si hay médico seleccionado
         if (medicoId != null) {
             medicos.findById(medicoId).ifPresent(m -> model.addAttribute("medicoActual", m));
             var turnosSemana = turnos.findByMedicoIdAndFechaBetweenAndActivoTrueOrderByHoraInicioAsc(
                     medicoId, lunesSemana, viernesSemana);
 
-            // Generar cabeceras: Lun 09/11, Mar 10/11, etc.
             List<String> encabezados = List.of(
                     "Lun " + lunesSemana.getDayOfMonth() + "/" + lunesSemana.getMonthValue(),
                     "Mar " + lunesSemana.plusDays(1).getDayOfMonth() + "/" + lunesSemana.plusDays(1).getMonthValue(),
@@ -84,7 +82,6 @@ public class JefeMedicoController {
                     "Jue " + lunesSemana.plusDays(3).getDayOfMonth() + "/" + lunesSemana.plusDays(3).getMonthValue(),
                     "Vie " + lunesSemana.plusDays(4).getDayOfMonth() + "/" + lunesSemana.plusDays(4).getMonthValue());
 
-            // Armar las filas cada 30 minutos desde 08:00 hasta 18:00
             List<com.clinica.clinicaapp.dto.ParrillaSemanalDto.FilaMatriz> filas = new java.util.ArrayList<>();
             LocalTime horaActual = LocalTime.of(8, 0);
             LocalTime horaLimite = LocalTime.of(22, 0);
@@ -150,7 +147,7 @@ public class JefeMedicoController {
     }
 
     // ==============================================================
-    // 3. ACCIONES DE MANTENIMIENTO DEL COMPAÑERO
+    // 3. MANTENIMIENTO RÁPIDO DE CONSULTORIO
     // ==============================================================
     @PostMapping("/turnos/{id}/consultorio")
     public String actualizarConsultorio(
@@ -170,8 +167,36 @@ public class JefeMedicoController {
         return "redirect:/jefe/horarios";
     }
 
+    /// ==============================================================
+    // 4. GESTIÓN INDEPENDIENTE: ACCESOS MÉDICOS
+    // ==============================================================
+    @GetMapping("/accesos-medicos")
+    public String pantallaAccesosMedicos(Model model) {
+        model.addAttribute("especialidades", especialidades.findAll());
+        model.addAttribute("cuerpoMedico", usuarios.findByRolOrderByNombreAsc(Rol.MEDICO));
+        return "admin/jefe-accesos-medicos";
+    }
+
+    @PostMapping("/accesos-medicos")
+    public String registrarNuevoMedico(
+            @RequestParam String nombres,
+            @RequestParam String apellidos,
+            @RequestParam Long especialidadId,
+            @RequestParam String correo,
+            @RequestParam String password,
+            RedirectAttributes redirect) {
+        try {
+            personal.crearMedico(nombres, apellidos, especialidadId, correo, password);
+            redirect.addFlashAttribute("exito", "Médico registrado exitosamente con credenciales habilitadas.");
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/jefe/accesos-medicos";
+    }
+
+    // Endpoint de compatibilidad para tests existentes (RolesPersistenciaWebTest)
     @PostMapping("/medicos")
-    public String crearCuentaMedica(
+    public String crearCuentaMedicaCompatibilidad(
             @RequestParam(required = false) Long medicoId,
             @RequestParam(defaultValue = "") String nombres,
             @RequestParam(defaultValue = "") String apellidos,
@@ -187,5 +212,4 @@ public class JefeMedicoController {
         }
         return "redirect:/jefe/horarios";
     }
-
 }

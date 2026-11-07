@@ -10,7 +10,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
 </head>
 
@@ -62,11 +63,47 @@
 
                     <!-- Mensajes de Alerta -->
                     <p class="sc-alert sc-alert-error" th:if="${mensajeError}" th:text="${mensajeError}"></p>
-                    <p class="sc-alert sc-alert-warning" th:if="${param.error != null and param.error[0] == 'tiempo_expirado'}">
+
+                    <!-- Toast Banner con Barra de Progreso y Desvanecimiento Automático -->
+                    <div th:if="${alertaTurnoGanado != null or (param.error != null and param.error[0] == 'ocupado')}"
+                        id="toastTurnoOcupado"
+                        class="relative overflow-hidden mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl shadow-sm transition-all duration-700 ease-out">
+
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                    <p class="font-semibold text-sm text-amber-900">Horario no disponible</p>
+                                    <p class="text-xs text-amber-800 mt-0.5 leading-relaxed"
+                                        th:text="${alertaTurnoGanado != null ? alertaTurnoGanado : 'El horario seleccionado acaba de ser reservado por otro paciente. Por favor selecciona otro horario disponible.'}">
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Botón para cerrar manualmente -->
+                            <button type="button" onclick="cerrarToastAlerta()"
+                                class="text-amber-500 hover:text-amber-800 transition p-1 rounded-lg text-lg leading-none shrink-0"
+                                title="Cerrar aviso">
+                                &times;
+                            </button>
+                        </div>
+
+                        <!-- Barra de progreso regresiva (7 segundos) -->
+                        <div class="absolute bottom-0 left-0 h-1 bg-amber-400/80 w-full transition-all duration-[7000ms] ease-linear"
+                            id="barraProgresoToast">
+                        </div>
+                    </div>
+
+                    <p class="sc-alert sc-alert-warning"
+                        th:if="${param.error != null and param.error[0] == 'tiempo_expirado'}">
                         La reserva anterior venció. Selecciona un nuevo turno disponible.
                     </p>
                     <div th:if="${param.error != null and param.error[0] == 'seleccione_turno'}"
-                         class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm">
+                        class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm">
                         ⚠️ Por favor selecciona uno de los horarios libres (en verde) antes de continuar.
                     </div>
 
@@ -76,12 +113,12 @@
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Especialidad médica</label>
                             <select name="especialidadId" onchange="this.form.submit()"
-                                    class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
+                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
                                 <option value="" disabled th:selected="${especialidadSeleccionada == null}">
                                     -- Selecciona una especialidad --
                                 </option>
                                 <option th:each="esp : ${especialidades}" th:value="${esp.id}" th:text="${esp.nombre}"
-                                        th:selected="${esp.id == especialidadSeleccionada}">
+                                    th:selected="${esp.id == especialidadSeleccionada}">
                                 </option>
                             </select>
                         </div>
@@ -90,32 +127,35 @@
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Fecha inicial</label>
                             <input type="date" name="fechaDesde" th:value="${fechaDesde}" onchange="this.form.submit()"
-                                   th:disabled="${especialidadSeleccionada == null}"
-                                   class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                th:disabled="${especialidadSeleccionada == null}"
+                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                         </div>
 
                         <!-- Fecha Final -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Fecha final</label>
                             <input type="date" name="fechaHasta" th:value="${fechaHasta}" onchange="this.form.submit()"
-                                   th:disabled="${especialidadSeleccionada == null}"
-                                   class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                th:disabled="${especialidadSeleccionada == null}"
+                                class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                         </div>
                     </form>
 
                     <!-- ESTADO 1: Antes de seleccionar Especialidad -->
                     <div th:if="${especialidadSeleccionada == null}"
-                         class="py-12 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-6">
-                        <div class="w-12 h-12 rounded-full bg-[#DCEEEA] flex items-center justify-center text-[#1E5646] mb-3">
+                        class="py-12 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-6">
+                        <div
+                            class="w-12 h-12 rounded-full bg-[#DCEEEA] flex items-center justify-center text-[#1E5646] mb-3">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
                                 </path>
                             </svg>
                         </div>
-                        <h4 class="text-base font-semibold text-gray-800">Comienza eligiendo una especialidad médica</h4>
+                        <h4 class="text-base font-semibold text-gray-800">Comienza eligiendo una especialidad médica
+                        </h4>
                         <p class="text-xs text-gray-500 max-w-sm mt-1">
-                            Selecciona una especialidad en el menú superior para ver la disponibilidad horaria de nuestros médicos.
+                            Selecciona una especialidad en el menú superior para ver la disponibilidad horaria de
+                            nuestros médicos.
                         </p>
                     </div>
 
@@ -140,37 +180,41 @@
 
                                 <!-- Mensaje si la especialidad no tiene cupos en ese rango -->
                                 <div th:if="${turnosPorMedico.empty}"
-                                     class="bg-gray-50 border border-gray-100 rounded-2xl p-8 text-center text-zinc-500 text-sm">
-                                    No se encontraron turnos disponibles para esta especialidad en el rango de fechas seleccionado.
+                                    class="bg-gray-50 border border-gray-100 rounded-2xl p-8 text-center text-zinc-500 text-sm">
+                                    No se encontraron turnos disponibles para esta especialidad en el rango de fechas
+                                    seleccionado.
                                 </div>
 
                                 <!-- Bloques de médicos y turnos -->
                                 <div th:each="entry : ${turnosPorMedico}"
-                                     class="bg-[#F8F9FA] rounded-2xl p-4 border border-zinc-100">
+                                    class="bg-[#F8F9FA] rounded-2xl p-4 border border-zinc-100">
                                     <div class="flex justify-between items-center mb-3">
                                         <span class="font-normal text-black text-base"
-                                              th:text="${entry.key.nombres + ' ' + entry.key.apellidos}"></span>
+                                            th:text="${entry.key.nombres + ' ' + entry.key.apellidos}"></span>
                                         <span class="text-zinc-500 text-xs"
-                                              th:text="${entry.key.especialidad.nombre}"></span>
+                                            th:text="${entry.key.especialidad.nombre}"></span>
                                     </div>
 
                                     <div class="flex flex-wrap gap-3 items-center">
                                         <th:block th:each="turno : ${entry.value}">
                                             <!-- Turno Libre -->
                                             <label th:if="${turno.estado == 'DISPONIBLE'}"
-                                                   class="cursor-pointer inline-flex">
+                                                class="cursor-pointer inline-flex">
                                                 <input type="radio" name="turnoId" th:value="${turno.id}"
-                                                       class="peer hidden" required>
-                                                <span class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#529E7F] text-white inline-flex items-center justify-center select-none peer-checked:bg-[#1E5646] peer-checked:text-white peer-checked:ring-4 peer-checked:ring-[#A2D9CE] peer-checked:font-bold peer-checked:scale-105 transform hover:opacity-90 transition duration-150 shadow-sm">
-                                                    <span th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
+                                                    class="peer hidden" required>
+                                                <span
+                                                    class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#529E7F] text-white inline-flex items-center justify-center select-none peer-checked:bg-[#1E5646] peer-checked:text-white peer-checked:ring-4 peer-checked:ring-[#A2D9CE] peer-checked:font-bold peer-checked:scale-105 transform hover:opacity-90 transition duration-150 shadow-sm">
+                                                    <span
+                                                        th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
                                                 </span>
                                             </label>
 
                                             <!-- Turno Ocupado o En Proceso -->
                                             <span th:if="${turno.estado == 'OCUPADO' or turno.estado == 'EN_PROCESO'}"
-                                                  class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90 inline-flex items-center justify-center select-none shadow-sm"
-                                                  title="Horario ocupado">
-                                                <span th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
+                                                class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90 inline-flex items-center justify-center select-none shadow-sm"
+                                                title="Horario ocupado">
+                                                <span
+                                                    th:text="${#temporals.format(turno.fecha, 'dd MMM') + ' · ' + #temporals.format(turno.horaInicio, 'HH:mm')}"></span>
                                             </span>
                                         </th:block>
                                     </div>
@@ -180,7 +224,7 @@
                             <!-- Botón de acción -->
                             <div class="pt-8" th:if="${!turnosPorMedico.empty}">
                                 <button type="submit" id="btnContinuarReserva" disabled
-                                        class="px-8 py-3 bg-gray-300 text-gray-500 font-medium text-base rounded-xl transition shadow-sm cursor-not-allowed">
+                                    class="px-8 py-3 bg-gray-300 text-gray-500 font-medium text-base rounded-xl transition shadow-sm cursor-not-allowed">
                                     Continuar con la reserva
                                 </button>
                             </div>
@@ -217,7 +261,61 @@
         });
 
         actualizarBoton();
+
+
+        // Manejo del desvanecimiento automático de la alerta de turno ocupado
+document.addEventListener('DOMContentLoaded', () => {
+    const toast = document.getElementById('toastTurnoOcupado');
+    const barra = document.getElementById('barraProgresoToast');
+    
+    if (toast && barra) {
+        let duracion = 7000; // 7 segundos
+        let inicio = Date.now();
+        let restante = duracion;
+        let timer = null;
+
+        // Inicia el encogimiento de la barra hacia la izquierda
+        requestAnimationFrame(() => {
+            barra.style.width = '0%';
+        });
+
+        const desvanecer = () => {
+            toast.classList.add('opacity-0', '-translate-y-2');
+            setTimeout(() => {
+                toast.remove();
+            }, 700); // coincide con duration-700
+        };
+
+        const iniciarTimer = () => {
+            inicio = Date.now();
+            timer = setTimeout(desvanecer, restante);
+        };
+
+        iniciarTimer();
+
+        // Si el usuario pasa el mouse para leer, se pausa la desaparición
+        toast.addEventListener('mouseenter', () => {
+            clearTimeout(timer);
+            restante -= (Date.now() - inicio);
+        });
+
+        toast.addEventListener('mouseleave', () => {
+            if (restante > 0) {
+                iniciarTimer();
+            }
+        });
+    }
+});
+
+function cerrarToastAlerta() {
+    const toast = document.getElementById('toastTurnoOcupado');
+    if (toast) {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 400);
+    }
+}
     </script>
 
 </body>
+
 </html>

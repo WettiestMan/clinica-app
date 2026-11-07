@@ -98,7 +98,8 @@ public class CitaController {
     public String confirmarReserva(
             @RequestParam(name = "turnoId", required = false) Long turnoId,
             HttpSession session,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
         Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
 
@@ -107,15 +108,17 @@ public class CitaController {
         }
 
         if (turnoId == null) {
-            return "redirect:/citas/agendar?error=seleccione_turno";
-        }
+            redirectAttributes.addFlashAttribute("mensajeAlerta", "Por favor, selecciona un horario de atención.");
+            return "redirect:/citas/agendar";}
 
         Turno turno = turnoRepository.findById(turnoId).orElse(null);
         if (turno == null || !turno.isActivo() || !"DISPONIBLE".equals(turno.getEstado())) {
-            return "redirect:/citas/agendar?error=ocupado";
+           redirectAttributes.addFlashAttribute("alertaTurnoGanado", 
+                    "El horario seleccionado ya no está disponible. Por favor, elige otro turno.");
+            return "redirect:/citas/agendar";
         }
 
-        model.addAttribute("turno", turno);
+       model.addAttribute("turno", turno);
         model.addAttribute("paciente", paciente);
         model.addAttribute("monto", turno.getMedico().getEspecialidad().getPrecioConsulta());
 
@@ -127,7 +130,8 @@ public class CitaController {
             @RequestParam Long turnoId,
             @RequestParam(defaultValue = "") String asunto,
             HttpSession session, 
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
         Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
 
@@ -147,9 +151,11 @@ public class CitaController {
         } catch (IllegalArgumentException ex) {
             model.addAttribute("errorAsunto", ex.getMessage());
             model.addAttribute("asunto", asunto);
-            return confirmarReserva(turnoId, session, model);
+            return confirmarReserva(turnoId, session, model, redirectAttributes);
         } catch (IllegalStateException ex) {
-            return "redirect:/citas/agendar?error=ocupado";
+            redirectAttributes.addFlashAttribute("alertaTurnoGanado", 
+                    "El horario que seleccionaste acaba de ser reservado por otro paciente. Por favor, selecciona otro horario disponible.");
+            return "redirect:/citas/agendar";
         }
     }
 

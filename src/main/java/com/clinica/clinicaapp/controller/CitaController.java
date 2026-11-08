@@ -224,6 +224,33 @@ public class CitaController {
         }
     }
 
+
+    // ==============================================================
+    // CANCELACIÓN VOLUNTARIA DE RESERVA EN PROCESO DE PAGO (PASO 3)
+    // ==============================================================
+    @PostMapping("/cancelar-pago")
+    public String cancelarPago(
+            @RequestParam Long citaId,
+            jakarta.servlet.http.HttpSession session) {
+
+        Paciente paciente = (Paciente) session.getAttribute("usuarioLogueado");
+        if (paciente == null) {
+            return "redirect:/login";
+        }
+
+        Cita cita = citaRepository.findById(citaId).orElse(null);
+        Long especialidadId = null;
+
+        if (cita != null && cita.getTurno() != null) {
+            especialidadId = cita.getTurno().getMedico().getEspecialidad().getId();
+            citaService.cancelarReservaEnProceso(citaId, paciente);
+        }
+
+        return especialidadId != null
+                ? "redirect:/citas/agendar?especialidadId=" + especialidadId
+                : "redirect:/citas/agendar";
+    }
+
     @GetMapping("/comprobante/{citaId}")
     public String verComprobante(
             @PathVariable Long citaId,

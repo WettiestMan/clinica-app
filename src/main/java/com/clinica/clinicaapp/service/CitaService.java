@@ -196,6 +196,28 @@ public class CitaService {
     }
 
     /**
+     * RF-04: Permite al paciente abortar voluntariamente el proceso de pago,
+     * liberando el turno inmediatamente al catálogo general sin esperar los 15 minutos.
+     */
+    @Transactional
+    public void cancelarReservaEnProceso(Long citaId, Paciente paciente) {
+        Cita cita = citaRepository.bloquear(citaId).orElse(null);
+        if (cita == null || cita.getPaciente() == null || paciente == null) {
+            return;
+        }
+
+        // Valida pertenencia
+        if (!cita.getPaciente().getId().equals(paciente.getId())) {
+            throw new IllegalArgumentException("No tiene permisos sobre esta cita.");
+        }
+
+        // Si sigue retenida en pago, se libera de inmediato
+        if ("EN_PROCESO".equals(cita.getEstado())) {
+            liberarTurnoExpirado(cita);
+        }
+    }
+
+    /**
      * HU-05 / RF-09, RF-10: Valida que la cita exista, sea del paciente, esté CONFIRMADA
      * y tenga al menos 24 horas de anticipación reglamentaria.
      */

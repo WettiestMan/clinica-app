@@ -2,7 +2,11 @@ package com.clinica.clinicaapp.service;
 
 import com.clinica.clinicaapp.entity.Cita;
 import com.clinica.clinicaapp.entity.ComprobantePago;
+import com.clinica.clinicaapp.entity.Medico;
+import com.clinica.clinicaapp.entity.NotificacionMedico;
 import com.clinica.clinicaapp.repository.ComprobantePagoRepository;
+import com.clinica.clinicaapp.repository.NotificacionMedicoRepository;
+
 import org.springframework.beans.factory.annotation.Value;
 import com.clinica.clinicaapp.entity.Paciente;
 import com.clinica.clinicaapp.entity.Turno;
@@ -27,6 +31,8 @@ public class CitaService {
     private final TurnoRepository turnoRepository;
     private final CitaRepository citaRepository;
 
+    private final NotificacionMedicoRepository notificacionMedicoRepository;
+    
     private final ComprobantePagoRepository pagos;
     @Value("${clinica.pago.simulado:false}")
     private boolean pagoSimulado;
@@ -35,12 +41,14 @@ public class CitaService {
                        ComprobantePagoRepository pagos, java.time.Clock clock,
             com.clinica.clinicaapp.repository.PacienteRepository pacientes,
             com.clinica.clinicaapp.repository.MedicoRepository medicos,
-            com.clinica.clinicaapp.repository.UsuarioPersonalRepository usuarios) {
+            com.clinica.clinicaapp.repository.UsuarioPersonalRepository usuarios,
+            NotificacionMedicoRepository notificacionMedicoRepository) {
         this.pacientes = pacientes; this.medicos = medicos; this.usuarios = usuarios;
         this.clock = clock;
         this.pagos = pagos;
         this.turnoRepository = turnoRepository;
         this.citaRepository = citaRepository;
+        this.notificacionMedicoRepository = notificacionMedicoRepository;
     }
 
     /**
@@ -103,7 +111,7 @@ public class CitaService {
                 .orElseThrow(() -> new IllegalArgumentException("Cita no encontrada"));
 
         if (("CONFIRMADA".equals(cita.getEstado()) || "REPROGRAMADA".equals(cita.getEstado()))
-                && pagos.findByCitaIdAndEstado(citaId,"APROBADO").isPresent()) return cita;
+                && pagos.findByCitaIdAndEstado(citaId, "APROBADO").isPresent()) return cita;
         if (!"EN_PROCESO".equals(cita.getEstado()))
             throw new IllegalStateException("La cita no está pendiente de emisión.");
         turnoRepository.bloquear(cita.getTurno().getId())
@@ -132,7 +140,6 @@ public class CitaService {
         cita.setNumeroOperacion("SIM-" + UUID.randomUUID());
         cita.setCodigo(cita.getCodigoVisible());
         
-        
         ComprobantePago pago = new ComprobantePago();
         pago.setCita(cita);
         pago.setNumero(cita.getNumeroOperacion());
@@ -148,6 +155,28 @@ public class CitaService {
         Turno turno = cita.getTurno();
         turno.setEstado("OCUPADO");
         turnoRepository.save(turno);
+
+        // ==============================================================
+        // NOTIFICACIÓN AUTOMÁTICA AL MÉDICO: NUEVA CITA CONFIRMADA
+        // ==============================================================
+        Medico medico = turno.getMedico();
+        String detalleAsunto = (cita.getAsunto() != null && !cita.getAsunto().isBlank())
+                ? " Motivo: " + cita.getAsunto().trim() + "."
+                : "";
+
+        NotificacionMedico aviso = new NotificacionMedico();
+        aviso.setMedico(medico);
+        aviso.setCreada(ahora());
+        aviso.setMensaje(String.format(
+                "Nueva cita agendada: Consulta con %s %s el %s a las %s (%s).%s",
+                cita.getPaciente().getNombres(),
+                cita.getPaciente().getApellidos(),
+                turno.getFecha(),
+                turno.getHoraInicio(),
+                turno.getConsultorioVisible(),
+                detalleAsunto
+        ));
+        notificacionMedicoRepository.save(aviso);
 
         return citaRepository.save(cita);
     }

@@ -55,7 +55,7 @@ public class PerfilController {
         }
 
         // Longitud mínima
-        if (nuevaPassword.length() < 6) {
+        if (nuevaPassword.length() < 8) {
             return "redirect:/perfil?error=longitud";
         }
 

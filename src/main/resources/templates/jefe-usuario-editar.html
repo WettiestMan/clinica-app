@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Usuarios')}">
+</head>
+<body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
+<aside th:replace="~{fragments/sidebar :: sidebar('usuarios')}">
+</aside>
+<div class="sc-workspace">
+<header th:replace="~{fragments/navbar :: navbar}">
+</header>
+<main class="sc-content">
+<div class="sc-container">
+<h2 class="sc-page-title">Usuarios</h2>
+<section class="sc-card">
+<p class="sc-alert" role="status" th:if="${exito}" th:text="${exito}">
+</p>
+<p class="sc-alert sc-alert-error" role="alert" th:if="${error}" th:text="${error}">
+</p>
+<h3 class="sc-card-title">Editar cuenta</h3>
+<p class="sc-description" th:text="${'Rol: ' + usuario.rol}">
+</p>
+<p>El rol y la especialidad se conservan para mantener el historial. Guardar los cambios cerrará las sesiones de esta cuenta.</p>
+<form method="post" th:action="@{/jefe/usuarios/{tipo}/{id}/editar(tipo=${usuario.tipo},id=${usuario.id})}">
+<input type="hidden" name="version" th:value="${usuario.version}">
+<div class="sc-grid">
+<div class="sc-field">
+<label class="sc-label" for="nombres">Nombres / nombre completo del jefe médico</label>
+<input class="sc-input" id="nombres" name="nombres" maxlength="100" required th:value="${usuario.nombres}">
+</div>
+<div class="sc-field" th:if="${usuario.rol != 'JEFE_MEDICO'}">
+<label class="sc-label" for="apellidos">Apellidos</label>
+<input class="sc-input" id="apellidos" name="apellidos" maxlength="100" required th:value="${usuario.apellidos}">
+</div>
+<div class="sc-field">
+<label class="sc-label" for="correo">Correo</label>
+<input class="sc-input" type="email" id="correo" name="correo" maxlength="254" required th:value="${usuario.correo}">
+</div>
+<div class="sc-field" th:if="${usuario.tipo == 'paciente'}">
+<label class="sc-label" for="dni">DNI</label>
+<input class="sc-input" id="dni" name="dni" pattern="[0-9]{8}" maxlength="8" required th:value="${usuario.dni}">
+</div>
+<div class="sc-field">
+<label class="sc-label" for="password">Nueva contraseña (opcional)</label>
+<input class="sc-input" type="password" id="password" name="password" autocomplete="new-password" th:attr="minlength=${usuario.tipo == 'paciente' ? 8 : 12}">
+<p class="sc-description">Déjala vacía para conservarla. Mínimo 8 caracteres para pacientes y 12 para personal; máximo 72 bytes.</p>
+</div>
+</div>
+<div class="sc-actions"><button class="sc-btn">Guardar cambios</button> <a th:href="@{/jefe/usuarios}">Volver</a></div>
+</form>
+</section>
+</div>
+</main>
+</div>
+</body>
+</html>

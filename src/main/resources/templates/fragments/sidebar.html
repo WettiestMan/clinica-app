@@ -1,64 +1,137 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <body>
 
-    <!-- FRAGMENTO SIDEBAR: recibe paginaActiva ('inicio', 'agendar', 'mis-citas') -->
-    <aside th:fragment="sidebar(paginaActiva)" 
-           class="w-64 bg-[#DCEEEA] flex flex-col justify-between h-screen border-r border-[#CFE3DF] flex-shrink-0">
+    <aside th:fragment="sidebar(paginaActiva)"
+        th:with="rolMenu=${rolVista != null ? rolVista : (session.rol != null ? session.rol : (session.medicoLogueado != null ? 'MEDICO' : 'PACIENTE'))}"
+        class="sc-sidebar" id="sidebarPrincipal" aria-label="Menú principal">
         <div>
-            <!-- Logo y Nombre -->
-            <div class="pt-8 pb-10 flex flex-col items-center gap-2">
-                <h1 class="text-3xl font-medium text-zinc-800 tracking-tight">SaludCitas</h1>
-                <img class="w-14 h-14 object-contain mt-1" th:src="@{/images/Logo.svg}" alt="Logo" />
+            <!-- Logotipo y Rol Activo -->
+            <div class="sc-brand">
+                <h1>SaludCitas</h1>
+                <img th:src="@{/images/Logo.svg}" alt="Logo de SaludCitas" width="56" height="56">
+                <span class="sc-brand-role"
+                    th:text="${rolMenu == 'JEFE_MEDICO' or rolMenu == 'JEFE' ? 'Jefe Médico' : (rolMenu == 'MEDICO' ? 'Médico' : 'Paciente')}">
+                    Paciente
+                </span>
             </div>
 
-            <!-- Navegación con activación dinámica -->
-            <nav class="space-y-2 px-3">
-                <!-- 1. Inicio -->
-                <a th:href="@{/citas/agendar}" 
-                   th:class="${paginaActiva == 'inicio'} 
-                             ? 'flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#A2D9CE] text-zinc-800 font-semibold text-base shadow-sm' 
-                             : 'flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-semibold'">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                    <span>Inicio</span>
-                </a>
+            <nav class="sc-nav" aria-label="Navegación">
 
-                <!-- 2. Agendar Cita -->
-                <a th:href="@{/citas/agendar}" 
-                   th:class="${paginaActiva == 'agendar'} 
-                             ? 'flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#A2D9CE] text-zinc-800 font-semibold text-base shadow-sm' 
-                             : 'flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-semibold'">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <span>Agendar Cita</span>
-                </a>
+                <!-- ================= PERFIL: PACIENTE ================= -->
+                <th:block th:if="${rolMenu == 'PACIENTE'}">
+                    <a th:href="@{/citas/agendar}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'inicio' or paginaActiva == 'agendar'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'agendar' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z">
+                            </path>
+                        </svg>
+                        <span>Agendar Cita</span>
+                    </a>
+                    <a th:href="@{/citas/mis-citas}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'mis-citas'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'mis-citas' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M9 5h10v16H5V5h4M9 3h6v4H9zM9 12h6m-6 4h6"></path>
+                        </svg>
+                        <span>Mis Citas</span>
+                    </a>
+                </th:block>
 
-                <!-- 3. Mis Citas -->
-                <a th:href="@{/citas/mis-citas}" 
-                   th:class="${paginaActiva == 'mis-citas'} 
-                             ? 'flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#A2D9CE] text-zinc-800 font-semibold text-base shadow-sm' 
-                             : 'flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-800 hover:bg-[#cfe5e0] transition text-base font-semibold'">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                    </svg>
-                    <span>Mis Citas</span>
-                </a>
+                <!-- ================= PERFIL: CUERPO MÉDICO ================= -->
+                <th:block th:if="${rolMenu == 'MEDICO'}">
+                    <a th:href="@{/medico/agenda}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'agenda'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'agenda' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z">
+                            </path>
+                        </svg>
+                        <span>Mi Agenda</span>
+                    </a>
+                    <a th:href="@{/medico/turnos}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'turnos'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'turnos' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 8v5l3 2M22 12a10 10 0 11-20 0 10 10 0 0120 0z"></path>
+                        </svg>
+                        <span>Mis Turnos</span>
+                    </a>
+                    <a th:href="@{/medico/notificaciones}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'notificaciones'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'notificaciones' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path>
+                        </svg>
+                        <span>Notificaciones</span>
+                        <span id="sc-notif-count" class="sc-notif-count"
+                            th:hidden="${avisosSinLeer == null or avisosSinLeer == 0}"
+                            th:text="${avisosSinLeer != null ? avisosSinLeer : 0}" aria-label="Notificaciones sin leer">
+                        </span>
+                    </a>
+                </th:block>
+
+                <!-- ================= PERFIL: JEFATURA MÉDICA (3 SECCIONES) ================= -->
+                <th:block th:if="${rolMenu == 'JEFE_MEDICO' or rolMenu == 'JEFE'}">
+                    <!-- 1. Usuarios -->
+                    <a th:href="@{/jefe/usuarios}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'usuarios'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'usuarios' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m20 0v-2a4 4 0 00-3-3.87M13 3a4 4 0 010 8M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                            </path>
+                        </svg>
+                        <span>Usuarios</span>
+                    </a>
+
+                    <!-- 2. Programar Horarios (Reemplazo de Disponibilidad) -->
+                    <a th:href="@{/jefe/horarios}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'horarios' or paginaActiva == 'disponibilidad'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'horarios' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z">
+                            </path>
+                        </svg>
+                        <span>Programar Horarios</span>
+                    </a>
+
+                    <!-- 3. Accesos Médicos (Ruta dedicada a la nueva pantalla) -->
+                    <a th:href="@{/jefe/accesos-medicos}" class="sc-nav-link"
+                        th:classappend="${paginaActiva == 'accesos' or paginaActiva == 'cuentas'} ? 'is-active'"
+                        th:attr="aria-current=${paginaActiva == 'accesos' or paginaActiva == 'cuentas' ? 'page' : null}">
+                        <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
+                            </path>
+                        </svg>
+                        <span>Accesos Médicos</span>
+                    </a>
+                </th:block>
+
             </nav>
         </div>
 
-        <!-- Botón Cerrar Sesión (dispara el modal global) -->
-        <div class="p-4 border-t border-[#0F766E]/20">
-            <button type="button" class="abrir-modal-logout w-full flex items-center gap-3 px-3 py-2 text-zinc-800 hover:text-red-700 transition font-semibold text-base focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-                <span>Cerrar Sesión</span>
-            </button>
+        <!-- Botón de Cierre de Sesión Seguro -->
+        <div class="sc-sidebar-footer">
+            <form th:action="@{/logout}" method="post" id="formLogoutSidebar" style="display:inline; width:100%;">
+                <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="sc-logout-trigger w-full text-left"
+                    style="background:none; border:none; cursor:pointer;">
+                    <svg class="sc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14 5-5-5-5m5 5H9"></path>
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
         </div>
     </aside>
 
 </body>
+
 </html>

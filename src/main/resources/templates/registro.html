@@ -21,6 +21,7 @@
             -webkit-text-fill-color: #374151 !important;
         }
     </style>
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
 </head>
 <body class="bg-white h-screen max-h-screen overflow-hidden p-0 m-0">
 
@@ -47,7 +48,7 @@
                     Regístrate y gestiona tus consultas de forma fácil y rápida. Podrás consultar la disponibilidad de los médicos, revisar tus citas anteriores y reservar y pagar tu próxima consulta desde la plataforma.
                 </p>
 
-                <form th:action="@{/registro}" method="post" class="space-y-3 max-w-xl">
+                <p th:if="${param.error}" class="sc-alert sc-alert-error">Revisa tus datos: nombre y apellidos obligatorios, DNI de ocho dígitos, correo libre y contraseña de al menos ocho caracteres.</p><form th:action="@{/registro}" method="post" class="space-y-3 max-w-xl">
                     
                     <!-- Fila 1: Apellidos y Nombres (orden de Figma) -->
                     <div class="grid grid-cols-2 gap-3">

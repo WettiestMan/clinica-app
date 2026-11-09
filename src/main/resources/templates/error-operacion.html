@@ -1,0 +1,5 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Revisa la operación')}"></head>
+<body class="sc-layout"><main class="sc-content sc-setup-main"><div class="sc-container sc-container-narrow"><section class="sc-card"><h2 class="sc-card-title">No se pudo completar la operación</h2><p class="sc-description" th:text="${mensaje}">Revisa los datos y vuelve a intentarlo.</p><a class="sc-btn" th:href="@{/}">Volver a mi inicio</a></section></div></main></body>
+</html>

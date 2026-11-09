@@ -5,33 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaludCitas - Buscar Disponibilidad</title>
-    <!-- Tailwind CSS -->
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
 </head>
 
-<body class="bg-[#F4F6F6] h-screen overflow-hidden flex">
+<body class="sc-layout">
 
-    <!-- SIDEBAR IZQUIERDO -->
+    <!-- Sidebar Izquierdo -->
     <aside th:replace="~{fragments/sidebar :: sidebar('agendar')}"></aside>
 
-    <!-- CONTENEDOR DERECHO -->
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    <!-- Contenedor Principal -->
+    <div class="sc-workspace">
 
-        <!-- Header superior -->
+        <!-- Header / Navbar -->
         <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-        <!-- Contenido principal -->
-        <main class="flex-1 overflow-y-auto px-10 pb-10">
-            <div class="max-w-4xl mx-auto pb-16">
+        <!-- Contenido Central -->
+        <main class="sc-content">
+            <div class="sc-container">
+
                 <h2 class="text-3xl font-bold text-black mb-6">Buscar Disponibilidad</h2>
 
                 <!-- Barra de Pasos -->
@@ -63,31 +61,69 @@
                         </p>
                     </div>
 
+                    <!-- Mensajes de Alerta -->
+                    <p class="sc-alert sc-alert-error" th:if="${mensajeError}" th:text="${mensajeError}"></p>
+
+                    <!-- Toast Banner con Barra de Progreso y Desvanecimiento Automático -->
+                    <div th:if="${alertaTurnoGanado != null or (param.error != null and param.error[0] == 'ocupado')}"
+                        id="toastTurnoOcupado"
+                        class="relative overflow-hidden mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl shadow-sm transition-all duration-700 ease-out">
+
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                    <p class="font-semibold text-sm text-amber-900">Horario no disponible</p>
+                                    <p class="text-xs text-amber-800 mt-0.5 leading-relaxed"
+                                        th:text="${alertaTurnoGanado != null ? alertaTurnoGanado : 'El horario seleccionado acaba de ser reservado por otro paciente. Por favor selecciona otro horario disponible.'}">
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Botón para cerrar manualmente -->
+                            <button type="button" onclick="cerrarToastAlerta()"
+                                class="text-amber-500 hover:text-amber-800 transition p-1 rounded-lg text-lg leading-none shrink-0"
+                                title="Cerrar aviso">
+                                &times;
+                            </button>
+                        </div>
+
+                        <!-- Barra de progreso regresiva (7 segundos) -->
+                        <div class="absolute bottom-0 left-0 h-1 bg-amber-400/80 w-full transition-all duration-[7000ms] ease-linear"
+                            id="barraProgresoToast">
+                        </div>
+                    </div>
+
+                    <p class="sc-alert sc-alert-warning"
+                        th:if="${param.error != null and param.error[0] == 'tiempo_expirado'}">
+                        La reserva anterior venció. Selecciona un nuevo turno disponible.
+                    </p>
                     <div th:if="${param.error != null and param.error[0] == 'seleccione_turno'}"
                         class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm">
                         ⚠️ Por favor selecciona uno de los horarios libres (en verde) antes de continuar.
                     </div>
 
-                    <!-- Filtros -->
+                    <!-- Filtros de búsqueda -->
                     <form th:action="@{/citas/agendar}" method="get" class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <!-- Selector de Especialidad -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Especialidad médica</label>
                             <select name="especialidadId" onchange="this.form.submit()"
                                 class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none">
-
-
                                 <option value="" disabled th:selected="${especialidadSeleccionada == null}">
                                     -- Selecciona una especialidad --
                                 </option>
-
                                 <option th:each="esp : ${especialidades}" th:value="${esp.id}" th:text="${esp.nombre}"
                                     th:selected="${esp.id == especialidadSeleccionada}">
                                 </option>
                             </select>
                         </div>
 
-                        <!-- Fecha Inicial (Deshabilitada si no hay especialidad) -->
+                        <!-- Fecha Inicial -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Fecha inicial</label>
                             <input type="date" name="fechaDesde" th:value="${fechaDesde}" onchange="this.form.submit()"
@@ -95,7 +131,7 @@
                                 class="w-full bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:border-zinc-400 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                         </div>
 
-                        <!-- Fecha Final (Deshabilitada si no hay especialidad) -->
+                        <!-- Fecha Final -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-zinc-600 text-sm font-medium">Fecha final</label>
                             <input type="date" name="fechaHasta" th:value="${fechaHasta}" onchange="this.form.submit()"
@@ -104,7 +140,7 @@
                         </div>
                     </form>
 
-                    <!-- ESTADO 1: Antes de seleccionar Especialidad (No se muestra nada de turnos) -->
+                    <!-- ESTADO 1: Antes de seleccionar Especialidad -->
                     <div th:if="${especialidadSeleccionada == null}"
                         class="py-12 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-6">
                         <div
@@ -123,7 +159,7 @@
                         </p>
                     </div>
 
-                    <!-- ESTADO 2: Especialidad ya seleccionada -->
+                    <!-- ESTADO 2: Especialidad seleccionada -->
                     <div th:if="${especialidadSeleccionada != null}" class="space-y-6">
 
                         <!-- Leyenda de colores -->
@@ -161,6 +197,7 @@
 
                                     <div class="flex flex-wrap gap-3 items-center">
                                         <th:block th:each="turno : ${entry.value}">
+                                            <!-- Turno Libre -->
                                             <label th:if="${turno.estado == 'DISPONIBLE'}"
                                                 class="cursor-pointer inline-flex">
                                                 <input type="radio" name="turnoId" th:value="${turno.id}"
@@ -172,6 +209,7 @@
                                                 </span>
                                             </label>
 
+                                            <!-- Turno Ocupado o En Proceso -->
                                             <span th:if="${turno.estado == 'OCUPADO' or turno.estado == 'EN_PROCESO'}"
                                                 class="px-5 py-2 rounded-2xl text-xs font-medium bg-[#F4A79D] text-zinc-800 cursor-not-allowed opacity-90 inline-flex items-center justify-center select-none shadow-sm"
                                                 title="Horario ocupado">
@@ -183,6 +221,7 @@
                                 </div>
                             </div>
 
+                            <!-- Botón de acción -->
                             <div class="pt-8" th:if="${!turnosPorMedico.empty}">
                                 <button type="submit" id="btnContinuarReserva" disabled
                                     class="px-8 py-3 bg-gray-300 text-gray-500 font-medium text-base rounded-xl transition shadow-sm cursor-not-allowed">
@@ -191,12 +230,13 @@
                             </div>
                         </form>
                     </div>
-
                 </div>
+
             </div>
         </main>
     </div>
 
+    <!-- Script de reactividad del botón -->
     <script>
         const btnContinuar = document.getElementById('btnContinuarReserva');
         const turnos = document.querySelectorAll('input[name="turnoId"]');
@@ -221,7 +261,61 @@
         });
 
         actualizarBoton();
+
+
+        // Manejo del desvanecimiento automático de la alerta de turno ocupado
+document.addEventListener('DOMContentLoaded', () => {
+    const toast = document.getElementById('toastTurnoOcupado');
+    const barra = document.getElementById('barraProgresoToast');
+    
+    if (toast && barra) {
+        let duracion = 7000; // 7 segundos
+        let inicio = Date.now();
+        let restante = duracion;
+        let timer = null;
+
+        // Inicia el encogimiento de la barra hacia la izquierda
+        requestAnimationFrame(() => {
+            barra.style.width = '0%';
+        });
+
+        const desvanecer = () => {
+            toast.classList.add('opacity-0', '-translate-y-2');
+            setTimeout(() => {
+                toast.remove();
+            }, 700); // coincide con duration-700
+        };
+
+        const iniciarTimer = () => {
+            inicio = Date.now();
+            timer = setTimeout(desvanecer, restante);
+        };
+
+        iniciarTimer();
+
+        // Si el usuario pasa el mouse para leer, se pausa la desaparición
+        toast.addEventListener('mouseenter', () => {
+            clearTimeout(timer);
+            restante -= (Date.now() - inicio);
+        });
+
+        toast.addEventListener('mouseleave', () => {
+            if (restante > 0) {
+                iniciarTimer();
+            }
+        });
+    }
+});
+
+function cerrarToastAlerta() {
+    const toast = document.getElementById('toastTurnoOcupado');
+    if (toast) {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 400);
+    }
+}
     </script>
+
 </body>
 
 </html>

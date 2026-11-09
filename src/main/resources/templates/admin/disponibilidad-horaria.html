@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/saludcitas.css}">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -15,236 +16,436 @@
     </style>
 </head>
 
-<body class="bg-[#F4F6F6] text-gray-800 min-h-screen flex">
+<body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
 
-    <!-- SIDEBAR -->
-    <div th:replace="~{fragments/sidebar-personal :: sidebar(rol='JEFE', activo='disponibilidad')}"></div>
+    <!-- SIDEBAR ESTÁNDAR -->
+    <aside th:replace="~{fragments/sidebar :: sidebar('horarios')}"></aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 overflow-y-auto px-10 py-8">
-        <div class="max-w-6xl mx-auto">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Programación Semanal de Turnos Médicos</h2>
-                <p class="text-sm text-gray-500">Planifica la disponibilidad de la semana entrante para consulta
-                    externa.</p>
-            </div>
+    <!-- ÁREA DE CONTENIDO -->
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-            <div th:if="${exito}"
-                class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium"
-                th:text="${exito}"></div>
-            <div th:if="${error}"
-                class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm font-medium"
-                th:text="${error}"></div>
-
-            <!-- ESTRUCTURA EN 2 COLUMNAS (Wireframe) -->
-            <form th:action="@{/personal/disponibilidad/publicar}" method="post" id="formDisponibilidad"
-                class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-                <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN -->
-                <div class="lg:col-span-7 bg-white rounded-3xl p-7 border border-gray-200 shadow-xs space-y-6">
-
-                    <!-- 1. Selección de Período y Especialista -->
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b pb-2">1.
-                            Selección de Período y Médico</h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-1">Semana a Programar (Solo
-                                    semanas futuras)</label>
-                                <!-- Restricción min: bloquea fechas pasadas o semana en curso -->
-                                <input type="date" name="fechaSemana" id="fechaSemana" th:value="${proximoLunes}"
-                                    th:min="${proximoLunes}" required
-                                    class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none">
-                                <span class="text-[11px] text-[#2D735C] font-medium">ⓘ Habilitado a partir del lunes
-                                    próximo reglamentario.</span>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Especialidad</label>
-                                    <select id="selectEspecialidad" required onchange="filtrarMedicos()"
-                                        class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white">
-                                        <option value="" disabled selected>-- Elige Especialidad --</option>
-                                        <option th:each="esp : ${especialidades}" th:value="${esp.id}"
-                                            th:text="${esp.nombre}" th:data-duracion="${esp.duracionMinutosDefault}">
-                                        </option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Médico
-                                        Asignado</label>
-                                    <select name="medicoId" id="selectMedico" required disabled
-                                        onchange="actualizarResumen()"
-                                        class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-gray-50 disabled:bg-gray-100">
-                                        <option value="">Primero elige especialidad</option>
-                                        <option th:each="med : ${medicos}" th:value="${med.id}"
-                                            th:text="${med.nombres + ' ' + med.apellidos}"
-                                            th:data-especialidad="${med.especialidad.id}"
-                                            th:data-duracion="${med.especialidad.duracionMinutosDefault}"
-                                            class="medico-opt hidden">
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. Configuración de la Jornada -->
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b pb-2">2.
-                            Configuración de la Jornada</h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-2">Días de Consulta
-                                    Externa</label>
-                                <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                                    <label
-                                        class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
-                                        <input type="checkbox" name="dias" value="MONDAY" checked
-                                            onchange="actualizarResumen()" class="hidden"> Lun
-                                    </label>
-                                    <label
-                                        class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
-                                        <input type="checkbox" name="dias" value="TUESDAY"
-                                            onchange="actualizarResumen()" class="hidden"> Mar
-                                    </label>
-                                    <label
-                                        class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
-                                        <input type="checkbox" name="dias" value="WEDNESDAY" checked
-                                            onchange="actualizarResumen()" class="hidden"> Mié
-                                    </label>
-                                    <label
-                                        class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
-                                        <input type="checkbox" name="dias" value="THURSDAY"
-                                            onchange="actualizarResumen()" class="hidden"> Jue
-                                    </label>
-                                    <label
-                                        class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
-                                        <input type="checkbox" name="dias" value="FRIDAY" checked
-                                            onchange="actualizarResumen()" class="hidden"> Vie
-                                    </label>
-                                    <label
-                                        class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
-                                        <input type="checkbox" name="dias" value="SATURDAY"
-                                            onchange="actualizarResumen()" class="hidden"> Sáb
-                                    </label>
-                                    <label
-                                        class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
-                                        <input type="checkbox" name="dias" value="SUNDAY" onchange="actualizarResumen()"
-                                            class="hidden"> Dom
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Hora Inicio</label>
-                                    <input type="time" name="horaInicio" id="horaInicio" value="08:00" required
-                                        onchange="actualizarResumen()"
-                                        class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Hora Fin</label>
-                                    <input type="time" name="horaFin" id="horaFin" value="12:00" required
-                                        onchange="actualizarResumen()"
-                                        class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Consultorio
-                                        Asignado</label>
-                                    <select name="consultorio" id="consultorio" onchange="actualizarResumen()"
-                                        class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white">
-                                        <option value="Consultorio 101 - Torre A">Cons. 101 (Torre A)</option>
-                                        <option value="Consultorio 102 - Torre A">Cons. 102 (Torre A)</option>
-                                        <option value="Consultorio 201 - Torre B" selected>Cons. 201 (Torre B)</option>
-                                        <option value="Consultorio 202 - Torre B">Cons. 202 (Torre B)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
+        <main class="sc-content">
+            <div class="sc-container">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Programación Semanal de Turnos Médicos</h2>
+                    <p class="text-sm text-gray-500">Planifica la disponibilidad de la semana entrante para consulta
+                        externa y audita la ocupación de cupos.</p>
                 </div>
 
-                <!-- COLUMNA DERECHA: RESUMEN Y VALIDACIÓN EN VIVO -->
-                <div class="lg:col-span-5 bg-white rounded-3xl p-7 border border-gray-200 shadow-xs space-y-6">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">3. Resumen y
-                        Rendimiento Médico</h3>
+                <div th:if="${exito}"
+                    class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium"
+                    th:text="${exito}"></div>
+                <div th:if="${error}"
+                    class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm font-medium"
+                    th:text="${error}"></div>
 
-                    <!-- Métricas automáticas -->
-                    <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                            <span class="block text-xs text-gray-500 font-medium">Horas / día</span>
-                            <span class="text-lg font-bold text-gray-900" id="resumenHoras">4.0 h</span>
+                <!-- 1. FORMULARIO DE GENERACIÓN MASIVA DE TURNOS -->
+                <form th:action="@{/jefe/horarios/publicar-semanal}" method="post" id="formDisponibilidad"
+                    class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
+
+                    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN -->
+                    <div class="lg:col-span-7 bg-white rounded-3xl p-7 border border-gray-200 shadow-xs space-y-6">
+
+                        <!-- 1. Selección de Período y Especialista -->
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b pb-2">
+                                1. Selección de Período y Médico
+                            </h3>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Semana a Programar
+                                        (Solo semanas futuras)</label>
+                                    <input type="date" name="fechaSemana" id="fechaSemana" th:value="${proximoLunes}"
+                                        th:min="${proximoLunes}" required
+                                        class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none">
+                                    <span class="text-[11px] text-[#2D735C] font-medium">ⓘ Habilitado a partir del lunes
+                                        próximo reglamentario.</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-semibold text-gray-700 mb-1">Especialidad</label>
+                                        <select id="selectEspecialidad" required onchange="filtrarMedicos()"
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white">
+                                            <option value="" disabled selected>-- Elige Especialidad --</option>
+                                            <option th:each="esp : ${especialidades}" th:value="${esp.id}"
+                                                th:text="${esp.nombre}"
+                                                th:data-duracion="${esp.duracionMinutosDefault}">
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Médico
+                                            Asignado</label>
+                                        <select name="medicoId" id="selectMedico" required disabled
+                                            onchange="actualizarResumen()"
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-gray-50 disabled:bg-gray-100">
+                                            <option value="">Primero elige especialidad</option>
+                                            <option th:each="med : ${medicos}" th:value="${med.id}"
+                                                th:text="${med.nombres + ' ' + med.apellidos}"
+                                                th:data-especialidad="${med.especialidad.id}"
+                                                th:data-duracion="${med.especialidad.duracionMinutosDefault}"
+                                                class="medico-opt hidden">
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                            <span class="block text-xs text-gray-500 font-medium">Cupos / día</span>
-                            <span class="text-lg font-bold text-[#2D735C]" id="resumenCuposDia">8</span>
+
+                        <!-- 2. Configuración de la Jornada -->
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b pb-2">
+                                2. Configuración de la Jornada
+                            </h3>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-2">Días de Consulta
+                                        Externa</label>
+                                    <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                                        <label
+                                            class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
+                                            <input type="checkbox" name="dias" value="MONDAY" checked
+                                                onchange="actualizarResumen()" class="hidden"> Lun
+                                        </label>
+                                        <label
+                                            class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
+                                            <input type="checkbox" name="dias" value="TUESDAY"
+                                                onchange="actualizarResumen()" class="hidden"> Mar
+                                        </label>
+                                        <label
+                                            class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
+                                            <input type="checkbox" name="dias" value="WEDNESDAY" checked
+                                                onchange="actualizarResumen()" class="hidden"> Mié
+                                        </label>
+                                        <label
+                                            class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
+                                            <input type="checkbox" name="dias" value="THURSDAY"
+                                                onchange="actualizarResumen()" class="hidden"> Jue
+                                        </label>
+                                        <label
+                                            class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
+                                            <input type="checkbox" name="dias" value="FRIDAY" checked
+                                                onchange="actualizarResumen()" class="hidden"> Vie
+                                        </label>
+                                        <label
+                                            class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
+                                            <input type="checkbox" name="dias" value="SATURDAY"
+                                                onchange="actualizarResumen()" class="hidden"> Sáb
+                                        </label>
+                                        <label
+                                            class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 text-xs font-medium has-[:checked]:bg-[#DCEEEA] has-[:checked]:border-[#2D735C] has-[:checked]:text-[#1E5646]">
+                                            <input type="checkbox" name="dias" value="SUNDAY"
+                                                onchange="actualizarResumen()" class="hidden"> Dom
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Hora
+                                            Inicio</label>
+                                        <input type="time" name="horaInicio" id="horaInicio" value="08:00" required
+                                            onchange="actualizarResumen()"
+                                            class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Hora Fin</label>
+                                        <input type="time" name="horaFin" id="horaFin" value="12:00" required
+                                            onchange="actualizarResumen()"
+                                            class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Consultorio
+                                            Asignado (*)</label>
+                                        <select name="consultorio" id="consultorio" required
+                                            onchange="actualizarResumen()"
+                                            class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white">
+                                            <option value="" disabled selected>-- Elige consultorio --</option>
+                                            <optgroup label="Torre A (Piso 1 - Polivalente y Materno-Infantil)">
+                                                <option value="Cons. 101 (Torre A)">Cons. 101 (Torre A) - Polivalente
+                                                </option>
+                                                <option value="Cons. 102 (Torre A)">Cons. 102 (Torre A) - Pediatría /
+                                                    General</option>
+                                                <option value="Cons. 103 (Torre A)">Cons. 103 (Torre A) - Ginecología
+                                                </option>
+                                                <option value="Cons. 104 (Torre A)">Cons. 104 (Torre A) - Cardiología /
+                                                    General</option>
+                                            </optgroup>
+                                            <optgroup label="Torre B (Piso 2 - Especialidades y Procedimientos)">
+                                                <option value="Cons. 201 (Torre B)">Cons. 201 (Torre B) - Odontología
+                                                </option>
+                                                <option value="Cons. 202 (Torre B)">Cons. 202 (Torre B) - Oftalmología
+                                                </option>
+                                                <option value="Cons. 203 (Torre B)">Cons. 203 (Torre B) - Dermatología
+                                                </option>
+                                                <option value="Cons. 204 (Torre B)">Cons. 204 (Torre B) - Traumatología
+                                                </option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                            <span class="block text-xs text-gray-500 font-medium">Turnos Totales</span>
-                            <span class="text-lg font-bold text-[#1E5646]" id="resumenTurnosTotal">24</span>
+
+                    </div>
+
+                    <!-- COLUMNA DERECHA: RESUMEN Y VALIDACIÓN EN VIVO -->
+                    <div class="lg:col-span-5 bg-white rounded-3xl p-7 border border-gray-200 shadow-xs space-y-6">
+                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">
+                            3. Resumen y Rendimiento Médico
+                        </h3>
+
+                        <!-- Métricas automáticas -->
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                <span class="block text-xs text-gray-500 font-medium">Horas / día</span>
+                                <span class="text-lg font-bold text-gray-900" id="resumenHoras">4.0 h</span>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                <span class="block text-xs text-gray-500 font-medium">Cupos / día</span>
+                                <span class="text-lg font-bold text-[#2D735C]" id="resumenCuposDia">8</span>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                <span class="block text-xs text-gray-500 font-medium">Turnos Totales</span>
+                                <span class="text-lg font-bold text-[#1E5646]" id="resumenTurnosTotal">24</span>
+                            </div>
+                        </div>
+
+                        <!-- Alertas de Salud Ocupacional -->
+                        <div id="alertaOptima"
+                            class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800 font-medium">
+                            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Carga laboral adecuada para consulta ambulatoria.</span>
+                        </div>
+
+                        <div id="alertaSobrecarga"
+                            class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-2.5 text-xs text-amber-800 font-medium">
+                            <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>Atención: Jornada continua mayor a 5 horas. Se recomienda descanso.</span>
+                        </div>
+
+                        <!-- Detalle de Simulación -->
+                        <div class="space-y-2 text-xs border-t border-gray-100 pt-4">
+                            <div class="flex justify-between text-gray-600">
+                                <span>Duración por cita:</span>
+                                <span class="font-semibold text-gray-900" id="resumenDuracion">30 min</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600">
+                                <span>Días seleccionados:</span>
+                                <span class="font-semibold text-gray-900" id="resumenDiasCount">3 días</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600">
+                                <span>Consultorio:</span>
+                                <span class="font-semibold text-gray-900" id="resumenConsultorio">Cons. 201 (Torre
+                                    B)</span>
+                            </div>
+                        </div>
+
+                        <!-- Botón de Envío -->
+                        <div class="pt-4">
+                            <button type="submit" id="btnPublicar" disabled
+                                class="w-full py-3.5 bg-[#2D735C] hover:bg-[#1E5646] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium text-sm rounded-xl transition shadow-sm">
+                                Publicar Disponibilidad en el Portal Paciente
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- 2. AUDITORÍA: CONSULTA DE PARRILLA SEMANAL -->
+                <section id="auditoria-horarios" class="bg-white rounded-3xl p-7 border border-gray-200 shadow-xs mt-8">
+
+                    <!-- Encabezado de la sección -->
+                    <div class="mb-5 pb-4 border-b border-gray-100">
+                        <h3 class="text-base font-bold text-gray-900">Auditoría y Consulta de Disponibilidad</h3>
+                        <p class="text-xs text-gray-500">Selecciona la especialidad y el profesional para inspeccionar
+                            su agenda semanal de citas.</p>
+                    </div>
+
+                    <!-- Selectores en Cascada: Especialidad -> Médico -->
+                    <form method="get" th:action="@{/jefe/horarios#auditoria-horarios}" id="formConsultaParrilla"
+                        class="flex flex-wrap items-end gap-4 pb-6 border-b border-gray-100">
+
+                        <input type="hidden" name="semana" th:value="${lunesActual}" />
+
+                        <!-- 1. Especialidad -->
+                        <div class="w-full sm:w-64">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">1. Especialidad
+                                Médica:</label>
+                            <select id="filtroEspecialidadAuditoria" onchange="cambiarEspecialidadAuditoria()"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white font-medium">
+                                <option value="" selected>-- Elige Especialidad --</option>
+                                <option th:each="esp : ${especialidades}" th:value="${esp.id}" th:text="${esp.nombre}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- 2. Médico (Desbloqueado con solo 1 o 2 médicos filtrados) -->
+                        <div class="w-full sm:w-72">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">2. Médico
+                                Especialista:</label>
+                            <select name="medicoId" id="filtroMedicoAuditoria"
+                                onchange="seleccionarMedicoAuditoria(this)" disabled
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-gray-50 disabled:bg-gray-100 font-medium">
+                                <option value="">Primero elige especialidad</option>
+                                <option th:each="m : ${medicos}" th:value="${m.id}"
+                                    th:text="${m.nombres + ' ' + m.apellidos}"
+                                    th:data-especialidad="${m.especialidad.id}"
+                                    th:selected="${m.id == medicoSeleccionado}" class="medico-auditoria-opt hidden">
+                                </option>
+                            </select>
+                        </div>
+
+                        <noscript><button type="submit" class="sc-btn sc-btn-small">Consultar</button></noscript>
+                    </form>
+
+                    <!-- ESTADO A: Parrilla Semanal Renderizada -->
+                    <div th:if="${medicoSeleccionado != null and parrilla != null}" class="pt-6">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-5">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-900"
+                                    th:text="${'Agenda Semanal: ' + (medicoActual != null ? (medicoActual.nombres + ' ' + medicoActual.apellidos) : 'Médico')}">
+                                </h4>
+                                <p class="text-xs text-gray-500">Visualización de turnos libres (verde) y ocupados por
+                                    pacientes (rojo).</p>
+                            </div>
+
+                            <!-- Navegación entre semanas -->
+                            <div class="flex items-center gap-2">
+                                <a class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                                    onclick="sessionStorage.setItem('scrollPosHorarios', window.scrollY)"
+                                    th:href="@{/jefe/horarios(medicoId=${medicoSeleccionado}, semana=${semanaAnterior})} + '#auditoria-horarios'">
+                                    &larr; Semana Anterior
+                                </a>
+                                <span class="text-xs font-semibold px-2 text-gray-800"
+                                    th:text="${'Semana del ' + #temporals.format(lunesActual, 'dd/MM/yyyy')}">
+                                </span>
+                                <a class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                                    onclick="sessionStorage.setItem('scrollPosHorarios', window.scrollY)"
+                                    th:href="@{/jefe/horarios(medicoId=${medicoSeleccionado}, semana=${semanaSiguiente})} + '#auditoria-horarios'">
+                                    Semana Siguiente &rarr;
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Leyenda Simplificada: Solo Verde y Rojo -->
+                        <div class="flex flex-wrap gap-4 mb-4 text-xs">
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-3 h-3 bg-emerald-100 border border-emerald-500 rounded-sm"></span>
+                                <strong class="text-emerald-800">Verde:</strong> Turno Libre (Disponible)
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-3 h-3 bg-red-100 border border-red-500 rounded-sm"></span>
+                                <strong class="text-red-800">Rojo:</strong> Cita Asignada (Ocupado)
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 text-gray-500">
+                                <span class="w-3 h-3 bg-gray-50 border border-dashed border-gray-300 rounded-sm"></span>
+                                Sin turno programado
+                            </span>
+                        </div>
+
+                        <!-- Matriz de disponibilidad con cabecera fija y scroll interno -->
+                        <div class="overflow-x-auto border border-gray-200 rounded-2xl max-h-[550px] overflow-y-auto">
+                            <table class="w-full text-center border-collapse">
+                                <thead class="sticky top-0 bg-gray-100 z-10 shadow-xs">
+                                    <tr class="border-b border-gray-200 text-xs font-semibold text-gray-700">
+                                        <th class="py-3 px-4 w-20 text-center border-r border-gray-200 bg-gray-100">Hora
+                                        </th>
+                                        <th th:each="col : ${parrilla.encabezadosDias}" th:text="${col}"
+                                            class="py-3 px-4 border-r border-gray-200 last:border-r-0 bg-gray-100"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 text-xs">
+                                    <tr th:each="fila : ${parrilla.filas}" class="hover:bg-gray-50/50">
+                                        <td class="py-2.5 px-3 font-semibold text-gray-600 bg-gray-50/80 border-r border-gray-200"
+                                            th:text="${fila.horaFormateada}">08:00</td>
+
+                                        <td th:each="c : ${fila.celdasPorDia}"
+                                            class="p-1.5 border-r border-gray-200 last:border-r-0 align-middle">
+                                            <!-- Turno programado -->
+                                            <div th:if="${c.existe}"
+                                                th:classappend="${c.estado == 'DISPONIBLE'} ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-red-50 text-red-800 border-red-300'"
+                                                class="border rounded-lg py-1.5 px-1 shadow-2xs">
+                                                <div class="font-bold text-[11px]"
+                                                    th:text="${c.estado == 'DISPONIBLE' ? 'LIBRE' : 'OCUPADO'}"></div>
+                                                <div class="text-[10px] text-gray-500 truncate"
+                                                    th:text="${c.consultorio}">Cons. 101</div>
+                                            </div>
+
+                                            <!-- Sin turno -->
+                                            <span th:unless="${c.existe}"
+                                                class="text-gray-300 text-sm font-light">-</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <!-- Alertas de Salud Ocupacional -->
-                    <div id="alertaOptima"
-                        class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800 font-medium">
-                        <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Carga laboral adecuada para consulta ambulatoria.</span>
-                    </div>
-
-                    <div id="alertaSobrecarga"
-                        class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-2.5 text-xs text-amber-800 font-medium">
-                        <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor"
+                    <!-- ESTADO B: Sin médico seleccionado -->
+                    <div th:unless="${medicoSeleccionado != null and parrilla != null}"
+                        class="py-12 text-center text-gray-400 text-xs">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span>Atención: Jornada continua mayor a 5 horas. Se recomienda descanso.</span>
+                        Selecciona una especialidad y luego uno de sus médicos para auditar su parrilla semanal de
+                        turnos.
                     </div>
+                </section>
 
-                    <!-- Detalle de Simulación -->
-                    <div class="space-y-2 text-xs border-t border-gray-100 pt-4">
-                        <div class="flex justify-between text-gray-600">
-                            <span>Duración por cita:</span>
-                            <span class="font-semibold text-gray-900" id="resumenDuracion">30 min</span>
-                        </div>
-                        <div class="flex justify-between text-gray-600">
-                            <span>Días seleccionados:</span>
-                            <span class="font-semibold text-gray-900" id="resumenDiasCount">3 días</span>
-                        </div>
-                        <div class="flex justify-between text-gray-600">
-                            <span>Consultorio:</span>
-                            <span class="font-semibold text-gray-900" id="resumenConsultorio">Cons. 201 (Torre B)</span>
-                        </div>
-                    </div>
+            </div>
+        </main>
+    </div>
 
-                    <!-- Botón de Envío -->
-                    <div class="pt-4">
-                        <button type="submit" id="btnPublicar" disabled
-                            class="w-full py-3.5 bg-[#2D735C] hover:bg-[#1E5646] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium text-sm rounded-xl transition shadow-sm">
-                            Publicar Disponibilidad en el Portal Paciente
-                        </button>
-                    </div>
-
-                </div>
-
-            </form>
-        </div>
-    </main>
-
-    <!-- SCRIPT PARA FILTRO DINÁMICO Y CÁLCULO DE RESUMEN -->
+   <!-- SCRIPT DE CÁLCULO DE FORMULARIO -->
     <script>
+        // ==========================================================
+        // MAPA DE CONSULTORIOS POR DEFECTO SEGÚN ESPECIALIDAD
+        // ==========================================================
+        const CONSULTORIOS_POR_ESPECIALIDAD = {
+            'medicina general': 'Cons. 101 (Torre A)',
+            'pediatria':        'Cons. 102 (Torre A)',
+            'ginecologia':      'Cons. 103 (Torre A)',
+            'cardiologia':      'Cons. 104 (Torre A)',
+            'odontologia':      'Cons. 201 (Torre B)',
+            'oftalmologia':     'Cons. 202 (Torre B)',
+            'dermatologia':     'Cons. 203 (Torre B)',
+            'traumatologia':    'Cons. 204 (Torre B)'
+        };
+
+        // Función auxiliar para comparar sin importar tildes ni mayúsculas
+        function normalizarTexto(texto) {
+            return (texto || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        // ==========================================================
+        // 1. LÓGICA DEL FORMULARIO DE CREACIÓN/PUBLICACIÓN SEMANAL
+        // ==========================================================
         function filtrarMedicos() {
             const espSelect = document.getElementById('selectEspecialidad');
             const medSelect = document.getElementById('selectMedico');
+            const consSelect = document.getElementById('consultorio');
             const espId = espSelect.value;
 
             medSelect.value = '';
@@ -265,9 +466,16 @@
             });
 
             if (medicosDisponibles > 0) {
-                // Selecciona el primer médico filtrado por comodidad
                 const primerDisponible = Array.from(options).find(o => o.dataset.especialidad === espId);
                 if (primerDisponible) medSelect.value = primerDisponible.value;
+            }
+
+            // Asignación sugerida del consultorio según la especialidad
+            if (espSelect.selectedIndex > 0 && consSelect) {
+                const textoEsp = normalizarTexto(espSelect.options[espSelect.selectedIndex].text);
+                if (CONSULTORIOS_POR_ESPECIALIDAD[textoEsp]) {
+                    consSelect.value = CONSULTORIOS_POR_ESPECIALIDAD[textoEsp];
+                }
             }
 
             actualizarResumen();
@@ -279,21 +487,23 @@
             const horaInicio = document.getElementById('horaInicio').value;
             const horaFin = document.getElementById('horaFin').value;
             const diasMarcados = document.querySelectorAll('input[name="dias"]:checked');
-            const consultorio = document.getElementById('consultorio').value;
+            const consElement = document.getElementById('consultorio');
+            const consultorio = consElement ? consElement.value : '';
             const btnPublicar = document.getElementById('btnPublicar');
 
-            // Duración base
             let duracion = 30;
             if (espSelect.selectedIndex > 0) {
                 duracion = parseInt(espSelect.options[espSelect.selectedIndex].dataset.duracion) || 30;
             }
             document.getElementById('resumenDuracion').textContent = duracion + " min";
-            document.getElementById('resumenConsultorio').textContent = consultorio;
+            document.getElementById('resumenConsultorio').textContent = consultorio || 'Sin asignar';
             document.getElementById('resumenDiasCount').textContent = diasMarcados.length + " día(s)";
 
-            if (!horaInicio || !horaFin) return;
+            if (!horaInicio || !horaFin) {
+                deshabilitarBotonPublicar(btnPublicar);
+                return;
+            }
 
-            // Calcular diferencia horaria en minutos
             const [h1, m1] = horaInicio.split(':').map(Number);
             const [h2, m2] = horaFin.split(':').map(Number);
             let minutosTotales = (h2 * 60 + m2) - (h1 * 60 + m1);
@@ -302,7 +512,7 @@
                 document.getElementById('resumenHoras').textContent = "0.0 h";
                 document.getElementById('resumenCuposDia').textContent = "0";
                 document.getElementById('resumenTurnosTotal').textContent = "0";
-                btnPublicar.disabled = true;
+                deshabilitarBotonPublicar(btnPublicar);
                 return;
             }
 
@@ -314,25 +524,126 @@
             document.getElementById('resumenCuposDia').textContent = cuposPorDia;
             document.getElementById('resumenTurnosTotal').textContent = turnosTotales;
 
-            // Alertas ergonómicas / sobrecarga
             const alertaOptima = document.getElementById('alertaOptima');
             const alertaSobrecarga = document.getElementById('alertaSobrecarga');
 
-            if (minutosTotales > 300) { // más de 5 horas
+            // REGLA: Límite estricto de 5 horas continuas (300 minutos)
+            if (minutosTotales > 300) {
                 alertaSobrecarga.classList.remove('hidden');
                 alertaOptima.classList.add('hidden');
+                // Bloquea el botón si supera las 5 horas
+                deshabilitarBotonPublicar(btnPublicar);
+                return;
             } else {
                 alertaSobrecarga.classList.add('hidden');
                 alertaOptima.classList.remove('hidden');
             }
 
-            // Habilitar botón únicamente si hay médico y días marcados
-            btnPublicar.disabled = !(medSelect.value && diasMarcados.length > 0 && cuposPorDia > 0);
+            // Validación global para habilitar el botón
+            const formularioCompleto = medSelect.value && diasMarcados.length > 0 && cuposPorDia > 0 && consultorio;
+            if (formularioCompleto) {
+                habilitarBotonPublicar(btnPublicar);
+            } else {
+                deshabilitarBotonPublicar(btnPublicar);
+            }
         }
 
-        // Ejecutar cálculo inicial al cargar
+        function deshabilitarBotonPublicar(btn) {
+            if (!btn) return;
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+            btn.classList.remove('bg-[#2D735C]', 'hover:bg-[#1E5646]');
+        }
+
+        function habilitarBotonPublicar(btn) {
+            if (!btn) return;
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+            btn.classList.add('bg-[#2D735C]', 'hover:bg-[#1E5646]');
+        }
+
+        // ==========================================================
+        // 2. LÓGICA DE AUDITORÍA (FILTRO EN CASCADA Y PARRILLA)
+        // ==========================================================
+        function cambiarEspecialidadAuditoria() {
+            const espSelect = document.getElementById('filtroEspecialidadAuditoria');
+            const medSelect = document.getElementById('filtroMedicoAuditoria');
+            const espId = espSelect.value;
+
+            medSelect.value = '';
+
+            if (!espId) {
+                medSelect.disabled = true;
+                medSelect.classList.add('bg-gray-100');
+                medSelect.classList.remove('bg-white');
+                return;
+            }
+
+            medSelect.disabled = false;
+            medSelect.classList.remove('bg-gray-100');
+            medSelect.classList.add('bg-white');
+
+            const options = medSelect.querySelectorAll('.medico-auditoria-opt');
+            let medicosEncontrados = 0;
+
+            options.forEach(opt => {
+                if (opt.dataset.especialidad === espId) {
+                    opt.classList.remove('hidden');
+                    medicosEncontrados++;
+                } else {
+                    opt.classList.add('hidden');
+                }
+            });
+
+            // Si la especialidad cuenta con un único médico, se preselecciona y consulta de inmediato
+            const visibles = Array.from(options).filter(opt => opt.dataset.especialidad === espId);
+            if (visibles.length === 1) {
+                medSelect.value = visibles[0].value;
+                seleccionarMedicoAuditoria(medSelect);
+            }
+        }
+
+        function seleccionarMedicoAuditoria(select) {
+            if (!select.value) return;
+            sessionStorage.setItem('scrollPosHorarios', window.scrollY);
+            select.form.submit();
+        }
+
+        // ==========================================================
+        // 3. INICIALIZACIÓN UNIFICADA AL CARGAR EL DOM
+        // ==========================================================
         document.addEventListener('DOMContentLoaded', () => {
+            // A. Restaurar posición de scroll previa para evitar saltos al inicio
+            const scrollPos = sessionStorage.getItem('scrollPosHorarios');
+            if (scrollPos) {
+                window.scrollTo({ top: parseInt(scrollPos, 10), behavior: 'instant' });
+                sessionStorage.removeItem('scrollPosHorarios');
+            }
+
+            // B. Inicializar métricas del formulario de publicación
             actualizarResumen();
+
+            // C. Sincronizar el selector de auditoría si viene un médico por parámetro GET
+            const medSelectAuditoria = document.getElementById('filtroMedicoAuditoria');
+            if (medSelectAuditoria) {
+                const selectedOpt = medSelectAuditoria.querySelector('option:checked');
+                if (selectedOpt && selectedOpt.dataset.especialidad) {
+                    const espSelect = document.getElementById('filtroEspecialidadAuditoria');
+                    espSelect.value = selectedOpt.dataset.especialidad;
+
+                    medSelectAuditoria.disabled = false;
+                    medSelectAuditoria.classList.remove('bg-gray-100');
+                    medSelectAuditoria.classList.add('bg-white');
+
+                    medSelectAuditoria.querySelectorAll('.medico-auditoria-opt').forEach(opt => {
+                        if (opt.dataset.especialidad === selectedOpt.dataset.especialidad) {
+                            opt.classList.remove('hidden');
+                        } else {
+                            opt.classList.add('hidden');
+                        }
+                    });
+                }
+            }
         });
     </script>
 </body>

@@ -16,6 +16,14 @@ public class Cita {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 500)
+    private String asunto;
+
+    @Transient
+    public String getAsuntoVisible() {
+        return asunto == null || asunto.isBlank() ? "No indicado" : asunto;
+    }
+
     // Código utilizado por SP-03.
     @Column(unique = true, length = 40)
     private String codigo;

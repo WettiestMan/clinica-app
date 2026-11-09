@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Gestionar Disponibilidad')}"></head>
+<body class="sc-layout" th:with="rolVista='JEFE_MEDICO'">
+    <aside th:replace="~{fragments/sidebar :: sidebar('horarios')}"></aside>
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
+        <main class="sc-content">
+            <div class="sc-container">
+                <h2 class="sc-page-title">Gestionar Disponibilidad</h2>
+                <p class="sc-page-description">Organiza los horarios de atención de cada médico según su especialidad.</p>
+                <div class="sc-alert" role="status" th:if="${mensaje}" th:text="${mensaje}"></div>
+                <div class="sc-alert sc-alert-error" role="alert" th:if="${error}" th:text="${error}"></div>
+                <section class="sc-card" aria-labelledby="tituloDisponibilidad">
+                    <div class="sc-section-header">
+                        <div><h3 class="sc-card-title" id="tituloDisponibilidad">Asignar turnos de atención</h3>
+                            <p class="sc-description">Selecciona al médico y define el horario que podrán reservar los pacientes.</p></div>
+                        <span class="sc-badge">Disponibilidad horaria</span>
+                    </div>
+                    <form th:action="@{/jefe/horarios}" method="post">
+                        <div class="sc-grid sc-grid-three">
+                            <div class="sc-field sc-span-all">
+                                <label class="sc-label" for="medicoHorario">Médico y especialidad</label>
+                                <select id="medicoHorario" name="medicoId" class="sc-input" required>
+                                    <option value="">Selecciona un médico</option>
+                                    <option th:each="m : ${medicos}" th:value="${m.id}" th:text="${m.nombres + ' ' + m.apellidos + ' · ' + m.especialidad.nombre}" th:selected="${m.id == medicoSeleccionado}"></option>
+                                </select>
+                            </div>
+                            <div class="sc-field sc-span-all"><label class="sc-label" for="consultorioHorario">Consultorio</label><input id="consultorioHorario" name="consultorio" class="sc-input" maxlength="60" placeholder="Ej. Consultorio 203 · Piso 2" required></div>
+                            <div class="sc-field"><label class="sc-label" for="fechaHorario">Fecha de atención</label><input id="fechaHorario" type="date" name="fecha" class="sc-input" required></div>
+                            <div class="sc-field"><label class="sc-label" for="inicioHorario">Hora inicial</label><input id="inicioHorario" type="time" name="inicio" class="sc-input" required></div>
+                            <div class="sc-field"><label class="sc-label" for="finHorario">Hora final</label><input id="finHorario" type="time" name="fin" class="sc-input" required></div>
+                            <div class="sc-field"><label class="sc-label" for="duracionHorario">Duración de cada turno</label><input id="duracionHorario" type="number" name="minutos" class="sc-input" min="5" max="240" value="30" required><p class="sc-help">Duración en minutos.</p></div>
+                        </div>
+                        <div class="sc-summary">Los turnos deben corresponder a un horario futuro y no superponerse con otros del mismo médico.</div>
+                        <div class="sc-actions"><button class="sc-btn" type="submit">Asignar disponibilidad</button></div>
+                    </form>
+                </section>
+                <section class="sc-card" aria-labelledby="tituloHorariosGuardados">
+                    <h3 class="sc-card-title" id="tituloHorariosGuardados">Disponibilidad registrada</h3>
+                    <p class="sc-description">Consulta los turnos guardados para comprobar la asignación y su estado actual.</p>
+                    <form class="sc-toolbar" th:action="@{/jefe/horarios}" method="get">
+                        <div class="sc-field"><label class="sc-label" for="consultaMedico">Médico</label><select id="consultaMedico" name="medicoId" class="sc-input" required><option value="">Selecciona un médico</option><option th:each="m : ${medicos}" th:value="${m.id}" th:selected="${m.id == medicoSeleccionado}" th:text="${m.nombres + ' ' + m.apellidos}"></option></select></div>
+                        <div class="sc-field"><label class="sc-label" for="consultaFecha">Fecha</label><input id="consultaFecha" type="date" name="fechaConsulta" th:value="${fechaConsulta}" class="sc-input" required></div>
+                        <button class="sc-btn sc-btn-secondary" type="submit">Consultar horarios</button>
+                    </form>
+                    <div class="sc-table-scroll" th:if="${!#lists.isEmpty(turnosAsignados)}"><table class="sc-table"><thead><tr><th>Inicio</th><th>Fin</th><th>Duración</th><th>Estado</th><th>Consultorio</th><th>Acciones</th></tr></thead><tbody><tr th:each="turno : ${turnosAsignados}"><td th:text="${#temporals.format(turno.horaInicio,'HH:mm')}"></td><td th:text="${#temporals.format(turno.horaFin,'HH:mm')}"></td><td th:text="${turno.duracionMinutos + ' min'}"></td><td><span class="sc-badge" th:text="${turno.activo ? turno.estado : 'BAJA'}"></span></td><td><form th:if="${turno.activo}" class="sc-row-actions" method="post" th:action="@{/jefe/turnos/{id}/consultorio(id=${turno.id})}"><input class="sc-input" name="consultorio" aria-label="Consultorio del turno" maxlength="60" required th:value="${turno.consultorio}" placeholder="Por asignar"><button class="sc-btn sc-btn-small" type="submit">Guardar</button></form><span th:unless="${turno.activo}" th:text="${turno.consultorioVisible}"></span></td><td><div class="sc-row-actions" th:if="${turno.activo and turno.estado == 'DISPONIBLE' and turno.fecha.atTime(turno.horaInicio).isAfter(ahoraGestion)}"><a class="sc-btn sc-btn-small sc-btn-secondary" th:href="@{/jefe/turnos/{id}/editar(id=${turno.id})}">Editar</a><a class="sc-btn sc-btn-small sc-btn-danger" th:href="@{/jefe/turnos/{id}/baja(id=${turno.id})}">Dar de baja</a></div><small th:if="${turno.activo and turno.estado == 'DISPONIBLE' and !turno.fecha.atTime(turno.horaInicio).isAfter(ahoraGestion)}">Horario pasado</small><small th:unless="${turno.activo}" th:text="${turno.motivoBaja}"></small><small th:if="${turno.activo and turno.estado != 'DISPONIBLE'}">Cita en curso / reservada</small></td></tr></tbody></table></div>
+                    <p class="sc-empty" th:if="${#lists.isEmpty(turnosAsignados)}">Selecciona un médico y una fecha para consultar sus turnos. Si no aparecen resultados, aún no tiene turnos en esa fecha.</p>
+                </section>
+                <section class="sc-card" id="cuentas-medicas" aria-labelledby="tituloCuentaMedica">
+                    <h3 class="sc-card-title" id="tituloCuentaMedica">Crear acceso de médico</h3>
+                    <p class="sc-description">Vincula una cuenta a un médico registrado o completa los datos para registrar uno nuevo.</p>
+                    <form th:action="@{/jefe/medicos}" method="post">
+                        <div class="sc-grid">
+                            <div class="sc-field sc-span-all"><label class="sc-label" for="medicoCuenta">Médico existente (opcional)</label>
+                                <select id="medicoCuenta" name="medicoId" class="sc-input"><option value="">Registrar un médico nuevo</option><option th:each="m : ${medicos}" th:value="${m.id}" th:text="${m.nombres + ' ' + m.apellidos + ' · ' + m.especialidad.nombre}"></option></select>
+                                <p class="sc-help">Si seleccionas un médico existente, conserva sus nombres y especialidad.</p>
+                            </div>
+                            <div class="sc-field"><label class="sc-label" for="nombresMedico">Nombres del médico nuevo</label><input id="nombresMedico" name="nombres" class="sc-input" maxlength="100" autocomplete="given-name"></div>
+                            <div class="sc-field"><label class="sc-label" for="apellidosMedico">Apellidos del médico nuevo</label><input id="apellidosMedico" name="apellidos" class="sc-input" maxlength="100" autocomplete="family-name"></div>
+                            <div class="sc-field sc-span-all"><label class="sc-label" for="especialidadMedico">Especialidad del médico nuevo</label><select id="especialidadMedico" name="especialidadId" class="sc-input"><option value="">Selecciona una especialidad</option><option th:each="e : ${especialidades}" th:value="${e.id}" th:text="${e.nombre}"></option></select></div>
+                            <div class="sc-field"><label class="sc-label" for="correoMedico">Correo electrónico</label><input id="correoMedico" type="email" name="correo" class="sc-input" maxlength="254" autocomplete="email" required></div>
+                            <div class="sc-field"><label class="sc-label" for="passwordMedico">Contraseña inicial</label><input id="passwordMedico" type="password" name="password" class="sc-input" minlength="12" maxlength="72" autocomplete="new-password" required><p class="sc-help">Utiliza al menos 12 caracteres.</p></div>
+                        </div>
+                        <div class="sc-actions"><button class="sc-btn" type="submit">Crear cuenta médica</button></div>
+                    </form>
+                </section>
+                <section class="sc-card" aria-labelledby="tituloCuentasRegistradas">
+                    <h3 class="sc-card-title" id="tituloCuentasRegistradas">Médicos con acceso registrado</h3>
+                    <p class="sc-description">Las cuentas de esta lista pueden iniciar sesión. Las contraseñas no se muestran.</p>
+                    <div class="sc-table-scroll" th:if="${!#lists.isEmpty(cuentasMedicas)}"><table class="sc-table"><thead><tr><th>Médico</th><th>Especialidad</th><th>Correo</th></tr></thead><tbody><tr th:each="cuenta : ${cuentasMedicas}"><td th:text="${cuenta.nombre}"></td><td th:text="${cuenta.medico.especialidad.nombre}"></td><td th:text="${cuenta.correo}"></td></tr></tbody></table></div>
+                    <p class="sc-empty" th:if="${#lists.isEmpty(cuentasMedicas)}">Todavía no hay cuentas de médicos registradas.</p>
+                </section>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

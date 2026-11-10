@@ -70,10 +70,14 @@ public class Cita {
 
     @Transient
     public String getCodigoVisible() {
-        if (id != null) {
-            return String.format(java.util.Locale.ROOT, "CIT-%06d", id);
+        if (codigoCita != null && !codigoCita.isBlank()) {
+            return codigoCita;
         }
 
-        return codigo != null ? codigo : codigoCita;
+        if (codigo != null && !codigo.isBlank()) {
+            return codigo;
+        }
+
+        return id != null ? String.format(java.util.Locale.ROOT, "CIT-%06d", id) : "-";
     }
 }

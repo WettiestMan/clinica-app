@@ -46,10 +46,22 @@ public class CuentasService {
     }
 
     public void validarPassword(String password, int minimo) {
-        if (password == null || password.length() < minimo
-                || password.getBytes(StandardCharsets.UTF_8).length > 72)
+        if (password == null) {
+            throw new IllegalArgumentException("La contraseña no puede ser nula.");
+        }
+        if (password.length() < minimo) {
             throw new IllegalArgumentException("La contraseña debe tener al menos " + minimo
-                    + " caracteres y no superar 72 bytes.");
+                    + " caracteres.");
+        }
+        if (password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("La contraseña no puede superar 72 bytes.");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos una letra mayúscula.");
+        }
+        if (!password.matches(".*\\d.*")) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos un número.");
+        }
     }
 
     public String nombre(String valor, String campo) {

@@ -69,6 +69,7 @@
                                 <th class="py-3 px-4">Fecha</th>
                                 <th class="py-3 px-4">Hora</th>
                                 <th class="py-3 px-4">Estado</th>
+                                <th class="py-3 px-4">descargar</th>
                                 <th th:if="${tabActiva == 'historicas'}" class="py-3 px-4"></th>
                             </tr>
                         </thead>
@@ -113,6 +114,12 @@
                                           class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#F8B4AC] text-[#84261B]">
                                         Cancelada
                                     </span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <a th:href="@{/descargar-constancia/${cita.id}}"
+                                       download class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#C9A842] text-[#7D5A21] hover:bg-[#e6c579] transition cursor-pointer inline-block">
+                                        Descargar
+                                    </a>
                                 </td>
                             </tr>
                         </tbody>

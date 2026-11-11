@@ -96,7 +96,7 @@ public class CitaService {
         cita.setEstado("EN_PROCESO");
         cita.setMonto(costoConsulta);
         cita.setFechaRegistro(ahora());
-        LocalDateTime limite=ahora().plusMinutes(15);
+        LocalDateTime limite=ahora().plusMinutes(1);
         LocalDateTime inicio=turno.getFecha().atTime(turno.getHoraInicio());
         cita.setFechaBloqueoExpiracion(inicio.isBefore(limite) ? inicio : limite);
 

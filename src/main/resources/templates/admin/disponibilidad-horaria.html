@@ -56,14 +56,30 @@
                             </h3>
 
                             <div class="space-y-4">
+                                <!-- AHORA -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Semana a Programar
-                                        (Solo semanas futuras)</label>
-                                    <input type="date" name="fechaSemana" id="fechaSemana" th:value="${proximoLunes}"
-                                        th:min="${proximoLunes}" required
-                                        class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none">
-                                    <span class="text-[11px] text-[#2D735C] font-medium">ⓘ Habilitado a partir del lunes
-                                        próximo reglamentario.</span>
+                                    <label for="fechaSemana" class="block text-xs font-semibold text-gray-700 mb-1">
+                                        Semana a Programar (Lunes a Domingo)
+                                    </label>
+                                    <div class="relative">
+                                        <select name="fechaSemana" id="fechaSemana" required
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#2D735C] outline-none bg-white font-medium cursor-pointer appearance-none">
+                                            <option th:each="sem : ${semanasDisponibles}" th:value="${sem.fechaLunes}"
+                                                th:text="${sem.etiqueta}">
+                                                Semana 1: del 16 de nov al 22 de nov
+                                            </option>
+                                        </select>
+                                        <div
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] text-[#2D735C] font-medium">
+                                        ⓘ Períodos cerrados de 7 días. Inician indefectiblemente el día lunes.
+                                    </span>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -414,20 +430,20 @@
         </main>
     </div>
 
-   <!-- SCRIPT DE CÁLCULO DE FORMULARIO -->
+    <!-- SCRIPT DE CÁLCULO DE FORMULARIO -->
     <script>
         // ==========================================================
         // MAPA DE CONSULTORIOS POR DEFECTO SEGÚN ESPECIALIDAD
         // ==========================================================
         const CONSULTORIOS_POR_ESPECIALIDAD = {
             'medicina general': 'Cons. 101 (Torre A)',
-            'pediatria':        'Cons. 102 (Torre A)',
-            'ginecologia':      'Cons. 103 (Torre A)',
-            'cardiologia':      'Cons. 104 (Torre A)',
-            'odontologia':      'Cons. 201 (Torre B)',
-            'oftalmologia':     'Cons. 202 (Torre B)',
-            'dermatologia':     'Cons. 203 (Torre B)',
-            'traumatologia':    'Cons. 204 (Torre B)'
+            'pediatria': 'Cons. 102 (Torre A)',
+            'ginecologia': 'Cons. 103 (Torre A)',
+            'cardiologia': 'Cons. 104 (Torre A)',
+            'odontologia': 'Cons. 201 (Torre B)',
+            'oftalmologia': 'Cons. 202 (Torre B)',
+            'dermatologia': 'Cons. 203 (Torre B)',
+            'traumatologia': 'Cons. 204 (Torre B)'
         };
 
         // Función auxiliar para comparar sin importar tildes ni mayúsculas

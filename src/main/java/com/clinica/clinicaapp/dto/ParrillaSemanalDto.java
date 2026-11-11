@@ -8,16 +8,17 @@ public class ParrillaSemanalDto {
 
     public record CeldaTurno(
             Long id,
-            String estado,      // "DISPONIBLE" o "OCUPADO"
+            String estado, // "DISPONIBLE" o "OCUPADO"
             String consultorio,
-            boolean existe
-    ) {}
+            boolean existe) {
+    }
 
     public record FilaMatriz(
             LocalTime hora,
             String horaFormateada, // "08:00", "08:30"
             List<CeldaTurno> celdasPorDia // 5 elementos: Lun a Vie
-    ) {}
+    ) {
+    }
 
     private final LocalDate lunesSemana;
     private final List<String> encabezadosDias; // ["Lun 09/11", "Mar 10/11", ...]
@@ -29,7 +30,20 @@ public class ParrillaSemanalDto {
         this.filas = filas;
     }
 
-    public LocalDate getLunesSemana() { return lunesSemana; }
-    public List<String> getEncabezadosDias() { return encabezadosDias; }
-    public List<FilaMatriz> getFilas() { return filas; }
+    public LocalDate getLunesSemana() {
+        return lunesSemana;
+    }
+
+    public List<String> getEncabezadosDias() {
+        return encabezadosDias;
+    }
+
+    public List<FilaMatriz> getFilas() {
+        return filas;
+    }
+
+    public record SemanaOpcion(
+            LocalDate fechaLunes,
+            String etiqueta) {
+    }
 }

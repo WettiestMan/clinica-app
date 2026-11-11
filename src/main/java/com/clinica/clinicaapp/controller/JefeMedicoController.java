@@ -44,6 +44,9 @@ public class JefeMedicoController {
         this.disponibilidad = disponibilidad;
     }
 
+// Record auxiliar (puedes dejarlo aquí mismo arriba del método o al inicio de la clase)
+    public record SemanaOpcion(LocalDate fechaLunes, String etiqueta) {}
+
     // ==============================================================
     // 1. PANTALLA PRINCIPAL: PROGRAMACIÓN SEMANAL Y MATRIZ
     // ==============================================================
@@ -63,7 +66,25 @@ public class JefeMedicoController {
 
         model.addAttribute("especialidades", especialidades.findAll());
         model.addAttribute("medicos", medicos.findAllByOrderByApellidosAscNombresAsc());
-        model.addAttribute("proximoLunes", hoy.with(TemporalAdjusters.next(DayOfWeek.MONDAY)));
+        
+        // --- INICIO: Generación de las próximas 8 semanas para el <select> ---
+        LocalDate proximoLunes = hoy.with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+        model.addAttribute("proximoLunes", proximoLunes);
+
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd 'de' MMM", new java.util.Locale("es", "PE"));
+        java.util.List<SemanaOpcion> semanasDisponibles = new java.util.ArrayList<>();
+        LocalDate cursorLunes = proximoLunes;
+
+        for (int i = 0; i < 8; i++) {
+            LocalDate cursorDomingo = cursorLunes.plusDays(6);
+            String etiqueta = String.format("Semana %d: del %s al %s", 
+                    (i + 1), cursorLunes.format(fmt), cursorDomingo.format(fmt));
+            semanasDisponibles.add(new SemanaOpcion(cursorLunes, etiqueta));
+            cursorLunes = cursorLunes.plusWeeks(1);
+        }
+        model.addAttribute("semanasDisponibles", semanasDisponibles);
+        // --- FIN: Generación de semanas ---
+
         model.addAttribute("medicoSeleccionado", medicoId);
         model.addAttribute("lunesActual", lunesSemana);
         model.addAttribute("semanaAnterior", lunesSemana.minusWeeks(1));
@@ -123,7 +144,7 @@ public class JefeMedicoController {
     // ==============================================================
     // 2. ACCIÓN: PUBLICAR DISPONIBILIDAD SEMANAL (POST)
     // ==============================================================
-    @PostMapping({ "/horarios/publicar-semanal", "/disponibilidad/publicar" })
+   @PostMapping({ "/horarios/publicar-semanal", "/disponibilidad/publicar" })
     public String publicarSemanal(
             @RequestParam Long medicoId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaSemana,
@@ -143,7 +164,10 @@ public class JefeMedicoController {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
 
-        return "redirect:/jefe/horarios";
+        // Redirige manteniendo al médico y la semana para que la auditoría cargue automáticamente
+        redirect.addAttribute("medicoId", medicoId);
+        redirect.addAttribute("semana", fechaSemana.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toString());
+        return "redirect:/jefe/horarios#auditoria-horarios";
     }
 
     // ==============================================================

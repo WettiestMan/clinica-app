@@ -298,17 +298,9 @@ public class CitaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        if (!"CONFIRMADA".equalsIgnoreCase(cita.getEstado())
-                && !"REPROGRAMADA".equalsIgnoreCase(cita.getEstado())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        ComprobantePago comprobante = comprobantePagoRepository
-                .findByCitaIdAndEstado(cita.getId(), "APROBADO")
-                .orElse(null);
 
         try {
-            byte[] pdfBytes = constanciaPdf.generarComprobante(cita, comprobante);
+            byte[] pdfBytes = constanciaPdf.generarComprobante(cita, null);
 
             String codigo = cita.getCodigoCita() != null ? cita.getCodigoCita() : "CIT-" + cita.getId();
             String nombreArchivo = "Constancia_" + codigo + ".pdf";
@@ -319,6 +311,7 @@ public class CitaController {
                     .body(pdfBytes);
 
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

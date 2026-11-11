@@ -13,12 +13,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CitaRepository extends JpaRepository<Cita, Long> {
+
     @Query("""
         select count(c) from Cita c where c.turno.id = :turnoId
         and upper(c.estado) in ('CONFIRMADA','REPROGRAMADA','EMITIDA','EN_PROCESO','PENDIENTE_PAGO')
         """)
     long contarActivasEnTurno(@Param("turnoId") Long turnoId);
-
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Cita c WHERE c.id = :id")
@@ -56,27 +56,31 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
           AND (c.turno.fecha > :hoy OR (c.turno.fecha = :hoy AND c.turno.horaInicio > :hora))
         ORDER BY c.turno.fecha ASC, c.turno.horaInicio ASC
         """)
-    List<Cita> findProximasEn(@Param("pacienteId") Long pacienteId,@Param("hoy") LocalDate hoy,@Param("hora") java.time.LocalTime hora);
+    List<Cita> findProximasEn(@Param("pacienteId") Long pacienteId, @Param("hoy") LocalDate hoy, @Param("hora") java.time.LocalTime hora);
+
     default List<Cita> findProximas(Long pacienteId) {
-        var ahora=java.time.LocalDateTime.now(java.time.ZoneId.of("America/Lima"));
-        return findProximasEn(pacienteId,ahora.toLocalDate(),ahora.toLocalTime());
+        var ahora = java.time.LocalDateTime.now(java.time.ZoneId.of("America/Lima"));
+        return findProximasEn(pacienteId, ahora.toLocalDate(), ahora.toLocalTime());
     }
 
     @Query("""
         SELECT c FROM Cita c
         WHERE c.paciente.id = :pacienteId
-          AND (UPPER(c.estado) IN (
-              'ATENDIDA',
-              'CANCELADA',
-              'EXPIRADA'
-          ) OR c.turno.fecha < :hoy OR (c.turno.fecha = :hoy AND c.turno.horaInicio <= :hora))
+          AND UPPER(c.estado) NOT IN ('EXPIRADA', 'EN_PROCESO', 'PENDIENTE_PAGO')
+          AND (
+              UPPER(c.estado) IN ('ATENDIDA', 'CANCELADA')
+              OR c.turno.fecha < :hoy
+              OR (c.turno.fecha = :hoy AND c.turno.horaInicio <= :hora)
+          )
         ORDER BY c.turno.fecha DESC, c.turno.horaInicio DESC
         """)
-    List<Cita> findHistoricasEn(@Param("pacienteId") Long pacienteId,@Param("hoy") LocalDate hoy,@Param("hora") java.time.LocalTime hora);
+    List<Cita> findHistoricasEn(@Param("pacienteId") Long pacienteId, @Param("hoy") LocalDate hoy, @Param("hora") java.time.LocalTime hora);
+
     default List<Cita> findHistoricas(Long pacienteId) {
-        var ahora=java.time.LocalDateTime.now(java.time.ZoneId.of("America/Lima"));
-        return findHistoricasEn(pacienteId,ahora.toLocalDate(),ahora.toLocalTime());
+        var ahora = java.time.LocalDateTime.now(java.time.ZoneId.of("America/Lima"));
+        return findHistoricasEn(pacienteId, ahora.toLocalDate(), ahora.toLocalTime());
     }
+
     @Query("select c.id from Cita c where c.estado='EN_PROCESO' and (c.fechaBloqueoExpiracion is null or c.fechaBloqueoExpiracion <= :ahora)")
     List<Long> vencidas(@Param("ahora") java.time.LocalDateTime ahora);
 

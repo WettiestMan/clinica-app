@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Configuración inicial')}"></head>
+<body class="sc-layout">
+    <main class="sc-content sc-setup-main">
+        <div class="sc-container sc-container-narrow">
+            <div class="sc-brand"><h1>SaludCitas</h1><img th:src="@{/images/Logo.svg}" alt="Logo de SaludCitas" width="56" height="56"></div>
+            <section class="sc-card">
+                <p class="sc-kicker">Primer acceso</p>
+                <h2 class="sc-card-title">Crear cuenta de Jefe Médico</h2>
+                <p class="sc-description">Configura la cuenta que administrará los accesos médicos y los horarios de atención. Este formulario solo está disponible hasta crear el primer jefe.</p>
+                <p th:if="${error}" th:text="${error}" class="sc-alert sc-alert-error" role="alert"></p>
+                <form th:action="@{/configuracion-inicial}" method="post">
+                    <div class="sc-grid">
+                        <div class="sc-field sc-span-all"><label class="sc-label" for="nombreJefe">Nombre completo</label><input id="nombreJefe" name="nombre" th:value="${nombre}" class="sc-input" required maxlength="100" autocomplete="name"></div>
+                        <div class="sc-field sc-span-all"><label class="sc-label" for="correoJefe">Correo electrónico de acceso</label><input id="correoJefe" name="correo" type="email" th:value="${correo}" class="sc-input" required maxlength="254" autocomplete="username"></div>
+                        <div class="sc-field"><label class="sc-label" for="claveJefe">Contraseña</label><input id="claveJefe" name="password" type="password" class="sc-input" required minlength="12" maxlength="72" autocomplete="new-password"></div>
+                        <div class="sc-field"><label class="sc-label" for="confirmarJefe">Confirmar contraseña</label><input id="confirmarJefe" name="confirmPassword" type="password" class="sc-input" required minlength="12" maxlength="72" autocomplete="new-password"></div>
+                    </div>
+                    <p class="sc-help sc-help-spaced">Utiliza al menos 12 caracteres. Conserva estas credenciales para ingresar al panel del jefe médico.</p>
+                    <div class="sc-actions"><button class="sc-btn" type="submit">Crear Jefe Médico</button><a class="sc-link" th:href="@{/login}">Volver al inicio de sesión</a></div>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

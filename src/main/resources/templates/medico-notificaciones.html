@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('SaludCitas - Notificaciones')}"></head>
+<body class="sc-layout" th:with="rolVista='MEDICO'">
+    <aside th:replace="~{fragments/sidebar :: sidebar('notificaciones')}"></aside>
+    <div class="sc-workspace">
+        <header th:replace="~{fragments/navbar :: navbar}"></header>
+        <main class="sc-content">
+            <div class="sc-container">
+                <h2 class="sc-page-title">Notificaciones</h2>
+                <section class="sc-card" aria-labelledby="tituloAvisos">
+                    <div class="sc-section-header"><div><h3 class="sc-card-title" id="tituloAvisos">Centro de notificaciones</h3><p class="sc-description">Revisa asignaciones, cambios de disponibilidad y cupos liberados por cancelación.</p></div><span class="sc-badge">Notificaciones internas</span></div>
+                    <form th:if="${avisosSinLeer > 0}" method="post" th:action="@{/medico/notificaciones/leer-todas}" class="sc-actions"><button class="sc-btn sc-btn-secondary sc-btn-small" type="submit">Marcar todas como leídas</button></form>
+                    <article class="sc-note" th:each="aviso : ${avisos}" th:classappend="${!aviso.leida} ? 'sc-note-unread'">
+                        <div><p class="sc-kicker" th:text="${aviso.leida ? 'Leída' : 'Sin leer'}">Sin leer</p><h4 th:text="${aviso.mensaje}"></h4><time th:text="${#temporals.format(aviso.creada, 'dd/MM/yyyy HH:mm')}"></time></div>
+                        <form th:unless="${aviso.leida}" th:action="@{/medico/notificaciones/{id}/leer(id=${aviso.id})}" method="post"><button class="sc-btn sc-btn-secondary sc-btn-small" type="submit">Marcar como leída</button></form>
+                        <span th:if="${aviso.leida}" class="sc-badge sc-badge-neutral">Leída</span>
+                    </article>
+                    <p class="sc-empty" th:if="${avisos == null or #lists.isEmpty(avisos)}">No tienes notificaciones para mostrar.</p>
+                    <p class="sc-help sc-help-spaced">Marcar un aviso como leído no modifica tus turnos asignados.</p>
+                </section>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

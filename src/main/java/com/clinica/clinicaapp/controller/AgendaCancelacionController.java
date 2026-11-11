@@ -17,24 +17,33 @@ import org.springframework.web.server.ResponseStatusException;
 public class AgendaCancelacionController {
   private final CitaRepository citas;
   private final EventoCancelacionRepository eventos;
+  private final com.clinica.clinicaapp.service.MedicoActualService medicoActual;
+  private final NotificacionMedicoRepository notificaciones;
 
-  public AgendaCancelacionController(CitaRepository c, EventoCancelacionRepository e) {
+  public AgendaCancelacionController(CitaRepository c, EventoCancelacionRepository e,
+      com.clinica.clinicaapp.service.MedicoActualService medicoActual, NotificacionMedicoRepository notificaciones) {
+    this.medicoActual = medicoActual;
+    this.notificaciones = notificaciones;
     citas = c;
     eventos = e;
   }
 
-  private Long medico(HttpSession s) {
-    Object m = s.getAttribute("medicoLogueado");
-    if (!(m instanceof Medico doctor) || doctor.getId() == null)
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Se requiere sesión autenticada de médico.");
-    return doctor.getId();
+  @GetMapping("/agenda")
+  public String pantalla(java.security.Principal principal, org.springframework.ui.Model model) {
+    Long medicoId = medicoActual.obtener(principal).getId();
+    model.addAttribute("asignaciones", notificaciones.findTop5ByMedicoIdAndLeidaFalseOrderByIdDesc(medicoId));
+    return "agenda-sp03";
   }
 
-  @GetMapping("/agenda")
-  public String pantalla(HttpSession s) {
-    medico(s);
-    return "agenda-sp03";
+  @GetMapping("/citas/{id}")
+  @Transactional(readOnly = true)
+  public String detalle(@PathVariable Long id, java.security.Principal principal, org.springframework.ui.Model model) {
+    Long doctor = medicoActual.obtener(principal).getId();
+    var cita = citas.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (!doctor.equals(cita.getTurno().getMedico().getId()))
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    model.addAttribute("cita", cita);
+    return "medico-detalle-cita";
   }
 
   public record CitaAgenda(Long id, String paciente, String hora, String estado) {}
@@ -45,12 +54,12 @@ public class AgendaCancelacionController {
   @ResponseBody
   @Transactional(readOnly = true)
   public Map<String, Object> datos(
-      HttpSession s,
+      java.security.Principal principal,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate fecha,
       jakarta.servlet.http.HttpServletResponse response) {
     response.setHeader("Cache-Control", "no-store");
-    Long doctor = medico(s);
+    Long doctor = medicoActual.obtener(principal).getId();
     LocalDate dia = fecha == null ? LocalDate.now(ZoneId.of("America/Lima")) : fecha;
     var agenda =
         citas.agenda(doctor, dia).stream()

@@ -16,6 +16,14 @@ public class Cita {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 500)
+    private String asunto;
+
+    @Transient
+    public String getAsuntoVisible() {
+        return asunto == null || asunto.isBlank() ? "No indicado" : asunto;
+    }
+
     // Código utilizado por SP-03.
     @Column(unique = true, length = 40)
     private String codigo;
@@ -62,10 +70,14 @@ public class Cita {
 
     @Transient
     public String getCodigoVisible() {
-        if (id != null) {
-            return String.format(java.util.Locale.ROOT, "CIT-%06d", id);
+        if (codigoCita != null && !codigoCita.isBlank()) {
+            return codigoCita;
         }
 
-        return codigo != null ? codigo : codigoCita;
+        if (codigo != null && !codigo.isBlank()) {
+            return codigo;
+        }
+
+        return id != null ? String.format(java.util.Locale.ROOT, "CIT-%06d", id) : "-";
     }
 }

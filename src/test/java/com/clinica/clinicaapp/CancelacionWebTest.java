@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
       "clinica.pago.simulado=true",
       "spring.jpa.hibernate.ddl-auto=create-drop"
     })
+@org.springframework.test.context.ActiveProfiles("test")
 @AutoConfigureMockMvc
 class CancelacionWebTest {
   @Autowired MockMvc mvc;
@@ -75,16 +76,16 @@ class CancelacionWebTest {
     MockHttpSession session = new MockHttpSession();
     session.setAttribute("usuarioLogueado", p);
     String html =
-        mvc.perform(get("/citas/cancelar").param("id", cita.getId().toString()).session(session))
+        mvc.perform(get("/citas/cancelar").param("id", cita.getId().toString()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(session))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
             .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
     java.nio.file.Files.writeString(java.nio.file.Path.of("target/sp03-formulario.html"), html);
-    mvc.perform(get("/citas/mis-citas").session(session)).andExpect(status().isOk());
+    mvc.perform(get("/citas/mis-citas").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(session)).andExpect(status().isOk());
     mvc.perform(
-            post("/citas/cancelar/confirmar")
-                .session(session)
+            post("/citas/cancelar/confirmar").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(session)
                 .param("id", cita.getId().toString())
                 .param("motivo", "Imprevisto personal")
                 .param("csrf", (String) session.getAttribute("sp03Csrf")))
@@ -93,27 +94,32 @@ class CancelacionWebTest {
         em.createQuery(
                 "select b from Cancelacion b", com.clinica.clinicaapp.entity.Cancelacion.class)
             .getSingleResult();
-    mvc.perform(get("/citas/cancelaciones/" + baja.getId()).session(session))
+    mvc.perform(get("/citas/cancelaciones/" + baja.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(session))
         .andExpect(status().isOk());
     byte[] pdf =
         mvc.perform(
-                get("/citas/cancelaciones/" + baja.getId() + "/constancia.pdf").session(session))
+                get("/citas/cancelaciones/" + baja.getId() + "/constancia.pdf").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(session))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/pdf"))
             .andReturn()
             .getResponse()
             .getContentAsByteArray();
     java.nio.file.Files.write(java.nio.file.Path.of("target/sp03-constancia.pdf"), pdf);
+    var cuentaMedica = new com.clinica.clinicaapp.entity.UsuarioPersonal();
+    cuentaMedica.setNombre("Médico Prueba"); cuentaMedica.setCorreo("doctor-web@example.test");
+    cuentaMedica.setPassword("hash"); cuentaMedica.setRol(com.clinica.clinicaapp.entity.Rol.MEDICO);
+    cuentaMedica.setMedico(doctor); em.persist(cuentaMedica); em.flush();
     MockHttpSession medico = new MockHttpSession();
     medico.setAttribute("medicoLogueado", doctor);
     mvc.perform(
-            get("/medico/agenda/datos").param("fecha", nuevoTurno.getFecha().toString()).session(medico))
+            get("/medico/agenda/datos").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("doctor-web@example.test").roles("MEDICO")).param("fecha", nuevoTurno.getFecha().toString()).session(medico))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.contador").value(0))
         .andExpect(jsonPath("$.avisos[0].texto").value("Cupo liberado por cancelación"));
   }
 
   @Test
+  @org.springframework.security.test.context.support.WithAnonymousUser
   void pacienteSinSesionRedirigido() throws Exception {
     mvc.perform(get("/citas/cancelar"))
         .andExpect(status().is3xxRedirection())
@@ -126,7 +132,7 @@ class CancelacionWebTest {
     p.setId(1L);
     MockHttpSession s = new MockHttpSession();
     s.setAttribute("usuarioLogueado", p);
-    mvc.perform(get("/citas/cancelar").session(s))
+    mvc.perform(get("/citas/cancelar").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(s))
         .andExpect(status().isOk())
         .andExpect(content().string(org.hamcrest.Matchers.containsString("Código único de cita")));
   }
@@ -138,8 +144,8 @@ class CancelacionWebTest {
     MockHttpSession s = new MockHttpSession();
     s.setAttribute("usuarioLogueado", p);
     mvc.perform(
-            post("/citas/cancelar/confirmar")
-                .session(s)
+            post("/citas/cancelar/confirmar").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(s)
                 .param("id", "1")
                 .param("motivo", "Error al agendar")
                 .param("csrf", "falso"))
@@ -152,6 +158,6 @@ class CancelacionWebTest {
     p.setId(1L);
     MockHttpSession s = new MockHttpSession();
     s.setAttribute("usuarioLogueado", p);
-    mvc.perform(get("/medico/agenda/datos").session(s)).andExpect(status().isForbidden());
+    mvc.perform(get("/medico/agenda/datos").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("paciente-prueba").roles("PACIENTE")).session(s)).andExpect(status().isForbidden());
   }
 }

@@ -24,115 +24,122 @@
         <!-- Contenido principal con scroll -->
         <main class="sc-content">
             <div class="sc-container">
-            <h2 class="text-3xl font-bold text-black mb-8">Mis citas</h2>
+                <h2 class="text-3xl font-bold text-black mb-8">Mis citas</h2>
 
-            <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-5xl">
-                <h3 class="text-xl font-semibold text-black">Mis citas</h3>
-                <p class="text-zinc-500 text-sm mt-1 mb-6">Seguimiento de tus citas y solicitudes en espera.</p>
+                <div class="bg-white rounded-[32px] p-8 shadow-sm max-w-5xl">
+                    <h3 class="text-xl font-semibold text-black">Mis citas</h3>
+                    <p class="text-zinc-500 text-sm mt-1 mb-6">Seguimiento de tus citas y solicitudes en espera.</p>
 
-                <form th:action="@{/citas/cancelar/buscar}" method="post" class="flex flex-col sm:flex-row sm:items-end gap-3 mb-6">
-                    <input type="hidden" name="csrf" th:value="${csrf}">
+                    <form th:action="@{/citas/cancelar/buscar}" method="post" class="flex flex-col sm:flex-row sm:items-end gap-3 mb-6">
+                        <input type="hidden" name="csrf" th:value="${csrf}">
 
-                    <div class="flex flex-col gap-1.5">
-                        <label for="codigoCancelar" class="text-zinc-600 text-sm font-medium">Código de la cita</label>
-                        <input id="codigoCancelar" type="text" name="codigo" placeholder="Ej. CIT-000123" maxlength="40" required
-                               class="bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-3 rounded-xl border border-transparent focus:border-[#2D735C] outline-none">
+                        <div class="flex flex-col gap-1.5">
+                            <label for="codigoCancelar" class="text-zinc-600 text-sm font-medium">Código de la cita</label>
+                            <input id="codigoCancelar" type="text" name="codigo" placeholder="Ej. CIT-2026-A2FEAD" maxlength="40" required
+                                   class="bg-[#F3F4F6] text-zinc-800 text-sm px-4 py-3 rounded-xl border border-transparent focus:border-[#2D735C] outline-none">
+                        </div>
+
+                        <button type="submit" class="px-6 py-3 rounded-xl bg-[#F8B4AC] text-[#84261B] text-sm font-medium hover:bg-[#f59e94] transition">
+                            Cancelar cita
+                        </button>
+                    </form>
+
+                    <!-- Pestañas -->
+                    <div class="flex items-center border-b border-zinc-200 gap-8 mb-6 text-sm">
+                        <a th:href="@{/citas/mis-citas(tab='proximas')}"
+                           th:classappend="${tabActiva == 'proximas'} ? 'border-b-2 border-[#2D735C] font-semibold text-black pb-2 -mb-px' : 'text-zinc-500 pb-2 hover:text-black font-normal'">
+                            Próximas
+                        </a>
+                        <a th:href="@{/citas/mis-citas(tab='historicas')}"
+                           th:classappend="${tabActiva == 'historicas'} ? 'border-b-2 border-[#2D735C] font-semibold text-black pb-2 -mb-px' : 'text-zinc-500 pb-2 hover:text-black font-normal'">
+                            Históricas
+                        </a>
+                        <span class="text-zinc-400 pb-2 font-normal cursor-not-allowed">
+                            En Espera
+                        </span>
                     </div>
 
-                    <button type="submit" class="px-6 py-3 rounded-xl bg-[#F8B4AC] text-[#84261B] text-sm font-medium hover:bg-[#f59e94] transition">
-                        Cancelar cita
-                    </button>
-                </form>
+                    <!-- Tabla de Citas -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-[#2D735C]/30 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
+                                    <th class="py-3 px-4">Especialidad</th>
+                                    <th class="py-3 px-4">Médico</th>
+                                    <th class="py-3 px-4">Fecha</th>
+                                    <th class="py-3 px-4">Hora</th>
+                                    <th class="py-3 px-4">Estado</th>
+                                    <th class="py-3 px-4 text-center">Constancia</th>
+                                    <th th:if="${tabActiva == 'historicas'}" class="py-3 px-4"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-100 text-sm text-zinc-700">
+                                <tr th:if="${#lists.isEmpty(citas)}">
+                                    <td colspan="7" class="text-center py-8 text-zinc-400">
+                                        No tienes citas registradas en esta sección.
+                                    </td>
+                                </tr>
 
-                <!-- Pestañas -->
-                <div class="flex items-center border-b border-zinc-200 gap-8 mb-6 text-sm">
-                    <a th:href="@{/citas/mis-citas(tab='proximas')}"
-                       th:classappend="${tabActiva == 'proximas'} ? 'border-b-2 border-[#2D735C] font-semibold text-black pb-2 -mb-px' : 'text-zinc-500 pb-2 hover:text-black font-normal'">
-                        Próximas
-                    </a>
-                    <a th:href="@{/citas/mis-citas(tab='historicas')}"
-                       th:classappend="${tabActiva == 'historicas'} ? 'border-b-2 border-[#2D735C] font-semibold text-black pb-2 -mb-px' : 'text-zinc-500 pb-2 hover:text-black font-normal'">
-                        Históricas
-                    </a>
-                    <span class="text-zinc-400 pb-2 font-normal cursor-not-allowed">
-                        En Espera
-                    </span>
+                                <tr th:each="cita : ${citas}" class="hover:bg-zinc-50 transition">
+                                    <td class="py-4 px-4">
+                                        <span class="font-medium text-zinc-900" th:text="${cita.turno.medico.especialidad.nombre}"></span>
+                                        <span class="block text-xs text-zinc-500 mt-1 font-mono" th:text="${cita.codigoVisible}"></span>
+                                    </td>
+                                    <td class="py-4 px-4" th:text="${cita.turno.medico.nombres + ' ' + cita.turno.medico.apellidos}">Dr. Tello</td>
+                                    <td class="py-4 px-4" th:text="${#temporals.format(cita.turno.fecha, 'dd MMM yyyy')}">30 ago 2026</td>
+                                    <td class="py-4 px-4" th:text="${#temporals.format(cita.turno.horaInicio, 'HH:mm')}">09:00</td>
+
+                                    <td class="py-4 px-4">
+                                        <a th:if="${tabActiva == 'proximas' and cita.estado == 'CONFIRMADA'}" 
+                                           th:href="@{'/citas/detalle/' + ${cita.id}}"
+                                           class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646] hover:bg-[#8fd1c4] transition cursor-pointer inline-block">
+                                            confirmada
+                                        </a>
+                                        <span th:if="${tabActiva != 'proximas' and cita.estado == 'CONFIRMADA'}" 
+                                              class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
+                                            confirmada
+                                        </span>
+                                        <a th:if="${tabActiva == 'proximas' and cita.estado == 'REPROGRAMADA'}"
+                                           th:href="@{/citas/detalle/{id}(id=${cita.id})}"
+                                           class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646] hover:bg-[#8fd1c4] transition inline-block">
+                                            Reprogramada
+                                        </a>
+                                        <span th:if="${tabActiva == 'historicas' and cita.estado == 'REPROGRAMADA'}">Reprogramada · fecha pasada</span>
+                                        <span th:if="${cita.estado == 'EXPIRADA' or cita.estado == 'EN_PROCESO' or cita.estado == 'PENDIENTE_PAGO' or cita.estado == 'EMITIDA'}" th:text="${cita.estado}"></span>
+                                        <span th:if="${cita.estado == 'ATENDIDA'}" 
+                                              class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
+                                            Atendida
+                                        </span>
+                                        <span th:if="${cita.estado == 'CANCELADA'}" 
+                                              class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#F8B4AC] text-[#84261B]">
+                                            Cancelada
+                                        </span>
+                                    </td>
+
+                                    <td class="py-4 px-4 text-center">
+                                        <a th:if="${cita.estado == 'CONFIRMADA' or cita.estado == 'REPROGRAMADA' or cita.estado == 'ATENDIDA'}"
+                                           th:href="@{/citas/descargar-constancia/{id}(id=${cita.id})}"
+                                           class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#C9A842] text-[#7D5A21] hover:bg-[#e6c579] transition cursor-pointer inline-block shadow-2xs">
+                                            Descargar PDF
+                                        </a>
+                                        <span th:unless="${cita.estado == 'CONFIRMADA' or cita.estado == 'REPROGRAMADA' or cita.estado == 'ATENDIDA'}"
+                                              class="text-zinc-300 text-xs font-normal">
+                                            —
+                                        </span>
+                                    </td>
+
+                                    <td th:if="${tabActiva == 'historicas'}" class="py-4 px-4"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p th:if="${tabActiva == 'proximas'}" class="text-zinc-500 text-xs mt-6">
+                        Haz clic en una cita para ver el detalle, reprogramar o cancelar.
+                    </p>
                 </div>
-
-                <!-- Tabla de Citas -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-[#2D735C]/30 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
-                                <th class="py-3 px-4">Especialidad</th>
-                                <th class="py-3 px-4">Médico</th>
-                                <th class="py-3 px-4">Fecha</th>
-                                <th class="py-3 px-4">Hora</th>
-                                <th class="py-3 px-4">Estado</th>
-                                <th class="py-3 px-4">descargar</th>
-                                <th th:if="${tabActiva == 'historicas'}" class="py-3 px-4"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-100 text-sm text-zinc-700">
-                            <tr th:if="${#lists.isEmpty(citas)}">
-                                <td colspan="6" class="text-center py-8 text-zinc-400">
-                                    No tienes citas registradas en esta sección.
-                                </td>
-                            </tr>
-
-                            <tr th:each="cita : ${citas}" class="hover:bg-zinc-50 transition">
-                                <td class="py-4 px-4">
-                                    <span th:text="${cita.turno.medico.especialidad.nombre}"></span>
-                                    <span class="block text-xs text-zinc-500 mt-1" th:text="${cita.codigoVisible}"></span>
-                                </td>
-                                <td class="py-4 px-4" th:text="${cita.turno.medico.nombres + ' ' + cita.turno.medico.apellidos}">Dr. Tello</td>
-                                <td class="py-4 px-4" th:text="${#temporals.format(cita.turno.fecha, 'dd MMM yyyy')}">30 ago 2026</td>
-                                <td class="py-4 px-4" th:text="${#temporals.format(cita.turno.horaInicio, 'HH:mm')}">09:00</td>
-
-                                <td class="py-4 px-4">
-                                    <a th:if="${tabActiva == 'proximas' and cita.estado == 'CONFIRMADA'}" 
-                                       th:href="@{'/citas/detalle/' + ${cita.id}}"
-                                       class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646] hover:bg-[#8fd1c4] transition cursor-pointer inline-block">
-                                        confirmada
-                                    </a>
-                                    <span th:if="${tabActiva != 'proximas' and cita.estado == 'CONFIRMADA'}" 
-                                          class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
-                                        confirmada
-                                    </span>
-                                    <a th:if="${tabActiva == 'proximas' and cita.estado == 'REPROGRAMADA'}"
-                                       th:href="@{/citas/detalle/{id}(id=${cita.id})}"
-                                       class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646] hover:bg-[#8fd1c4] transition inline-block">
-                                        Reprogramada
-                                    </a>
-                                    <span th:if="${tabActiva == 'historicas' and cita.estado == 'REPROGRAMADA'}">Reprogramada · fecha pasada</span>
-                                    <span th:if="${cita.estado == 'EXPIRADA' or cita.estado == 'EN_PROCESO' or cita.estado == 'PENDIENTE_PAGO' or cita.estado == 'EMITIDA'}" th:text="${cita.estado}"></span>
-                                    <span th:if="${cita.estado == 'ATENDIDA'}" 
-                                          class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#A2D9CE] text-[#1E5646]">
-                                        Atendida
-                                    </span>
-                                    <span th:if="${cita.estado == 'CANCELADA'}" 
-                                          class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#F8B4AC] text-[#84261B]">
-                                        Cancelada
-                                    </span>
-                                </td>
-                                <td class="py-4 px-4">
-                                    <a th:href="@{/descargar-constancia/${cita.id}}"
-                                       download class="px-3.5 py-1 rounded-full text-xs font-medium bg-[#C9A842] text-[#7D5A21] hover:bg-[#e6c579] transition cursor-pointer inline-block">
-                                        Descargar
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <p th:if="${tabActiva == 'proximas'}" class="text-zinc-500 text-xs mt-6">
-                    Haz clic en una cita para ver el detalle, reprogramar o cancelar.
-                </p>
             </div>
-        
-            </div>
-</main>
+        </main>
     </div>
 
 </body>

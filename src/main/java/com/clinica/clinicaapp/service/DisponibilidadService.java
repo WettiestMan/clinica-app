@@ -37,12 +37,12 @@ public class DisponibilidadService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public DisponibilidadService(MedicoRepository medicos, 
-                                 TurnoRepository turnos,
-                                 UsuarioPersonalRepository usuarios, 
-                                 NotificacionMedicoRepository notificaciones, 
-                                 Clock clock, 
-                                 CitaRepository citas) {
+    public DisponibilidadService(MedicoRepository medicos,
+            TurnoRepository turnos,
+            UsuarioPersonalRepository usuarios,
+            NotificacionMedicoRepository notificaciones,
+            Clock clock,
+            CitaRepository citas) {
         this.medicos = medicos;
         this.turnos = turnos;
         this.usuarios = usuarios;
@@ -56,16 +56,17 @@ public class DisponibilidadService {
     // ==============================================================
     @Transactional
     public int generarTurnosSemanales(Long medicoId,
-                                      LocalDate fechaSemanaLunes,
-                                      List<DayOfWeek> diasSeleccionados,
-                                      LocalTime horaInicio,
-                                      LocalTime horaFin,
-                                      String consultorio) {
+            LocalDate fechaSemanaLunes,
+            List<DayOfWeek> diasSeleccionados,
+            LocalTime horaInicio,
+            LocalTime horaFin,
+            String consultorio) {
 
         // 1. Regla de anticipación: Solo programar semanas futuras
         LocalDate inicioSemanaActual = LocalDate.now(clock.withZone(ZoneId.of("America/Lima"))).with(DayOfWeek.MONDAY);
         if (!fechaSemanaLunes.isAfter(inicioSemanaActual)) {
-            throw new IllegalStateException("La programación médica debe realizarse con mínimo una semana de anticipación.");
+            throw new IllegalStateException(
+                    "La programación médica debe realizarse con mínimo una semana de anticipación.");
         }
 
         // 2. Validación de coherencia de horario
@@ -76,13 +77,18 @@ public class DisponibilidadService {
         // 3. REGLA 1: Límite de jornada laboral continua (Máximo 5 horas = 300 minutos)
         long duracionTotalMinutos = Duration.between(horaInicio, horaFin).toMinutes();
         if (duracionTotalMinutos > 300) {
-            throw new IllegalArgumentException("Sobrecarga de turno: la jornada continua no puede exceder las 5 horas (300 minutos).");
+            throw new IllegalArgumentException(
+                    "Sobrecarga de turno: la jornada continua no puede exceder las 5 horas (300 minutos).");
         }
 
         String consultorioValido = validarConsultorio(consultorio);
 
         Medico medico = medicos.findById(medicoId)
                 .orElseThrow(() -> new IllegalArgumentException("El médico seleccionado no existe."));
+
+        if (!usuarios.existsByMedicoIdAndActivoTrue(medicoId)) {
+            throw new IllegalStateException("El médico seleccionado se encuentra inactivo y no puede recibir turnos.");
+        }
 
         // 4. Duración dinámica por especialidad
         int duracionMinutos = medico.getEspecialidad().getDuracionMinutosDefault();
@@ -137,7 +143,8 @@ public class DisponibilidadService {
         }
 
         if (turnosNuevos.isEmpty()) {
-            throw new IllegalStateException("No se generó ningún turno. Verifique si los horarios ya estaban previamente registrados.");
+            throw new IllegalStateException(
+                    "No se generó ningún turno. Verifique si los horarios ya estaban previamente registrados.");
         }
 
         turnos.saveAll(turnosNuevos);
@@ -162,7 +169,8 @@ public class DisponibilidadService {
     }
 
     @Transactional
-    public int asignar(Long medicoId, LocalDate fecha, LocalTime inicio, LocalTime fin, int minutos, String consultorio) {
+    public int asignar(Long medicoId, LocalDate fecha, LocalTime inicio, LocalTime fin, int minutos,
+            String consultorio) {
         return asignarInterno(medicoId, fecha, inicio, fin, minutos, validarConsultorio(consultorio));
     }
 
@@ -180,13 +188,15 @@ public class DisponibilidadService {
         medicos.bloquear(referencia.getMedico().getId()).orElseThrow();
         entityManager.refresh(referencia, LockModeType.PESSIMISTIC_WRITE);
         var turno = referencia;
-        if (!turno.isActivo()) throw new IllegalArgumentException("El turno está de baja.");
+        if (!turno.isActivo())
+            throw new IllegalArgumentException("El turno está de baja.");
         turno.setConsultorio(valor);
-        
+
         var aviso = new NotificacionMedico();
         aviso.setMedico(turno.getMedico());
         aviso.setCreada(ahora());
-        aviso.setMensaje("Consultorio actualizado: " + turno.getFecha() + " a las " + turno.getHoraInicio() + ", " + valor + ".");
+        aviso.setMensaje("Consultorio actualizado: " + turno.getFecha() + " a las " + turno.getHoraInicio() + ", "
+                + valor + ".");
         notificaciones.save(aviso);
     }
 
@@ -196,7 +206,7 @@ public class DisponibilidadService {
             throw new IllegalArgumentException("Indica el motivo de baja (máximo 300 caracteres).");
         }
         var turno = bloquearGestion(id, version);
-        turno.setActivo(false); 
+        turno.setActivo(false);
         turno.setMotivoBaja(motivo.trim());
         notificar(turno, "Disponibilidad dada de baja: " + turno.getFecha() + " de " + turno.getHoraInicio()
                 + " a " + turno.getHoraFin() + ". Motivo: " + motivo.trim());
@@ -205,11 +215,13 @@ public class DisponibilidadService {
     @Transactional
     public Long editar(Long id, long version, LocalDate fecha, LocalTime inicio, LocalTime fin, String consultorio) {
         String ubicacion = validarConsultorio(consultorio);
-        if (fecha == null || inicio == null || fin == null || !fecha.atTime(inicio).isAfter(ahora()) || !fin.isAfter(inicio)) {
+        if (fecha == null || inicio == null || fin == null || !fecha.atTime(inicio).isAfter(ahora())
+                || !fin.isAfter(inicio)) {
             throw new IllegalArgumentException("Indica una fecha futura y una hora final posterior al inicio.");
         }
         long minutos = Duration.between(inicio, fin).toMinutes();
-        if (minutos < 5 || minutos > 240 || inicio.getSecond() != 0 || fin.getSecond() != 0 || inicio.getNano() != 0 || fin.getNano() != 0) {
+        if (minutos < 5 || minutos > 240 || inicio.getSecond() != 0 || fin.getSecond() != 0 || inicio.getNano() != 0
+                || fin.getNano() != 0) {
             throw new IllegalArgumentException("Cada turno debe durar entre 5 y 240 minutos, sin segundos.");
         }
         var anterior = bloquearGestion(id, version);
@@ -219,24 +231,25 @@ public class DisponibilidadService {
         if (turnos.contarCruces(anterior.getMedico().getId(), id, fecha, inicio, fin) > 0) {
             throw new IllegalArgumentException("El horario se superpone con otro turno del médico.");
         }
-        if (fecha.equals(anterior.getFecha()) && inicio.equals(anterior.getHoraInicio()) && fin.equals(anterior.getHoraFin()) && ubicacion.equals(anterior.getConsultorio())) {
+        if (fecha.equals(anterior.getFecha()) && inicio.equals(anterior.getHoraInicio())
+                && fin.equals(anterior.getHoraFin()) && ubicacion.equals(anterior.getConsultorio())) {
             throw new IllegalArgumentException("No hay cambios para guardar.");
         }
 
-        anterior.setActivo(false); 
+        anterior.setActivo(false);
         anterior.setMotivoBaja("Reemplazado mediante edición de disponibilidad.");
-        
-        Turno nuevo = new Turno(); 
-        nuevo.setMedico(anterior.getMedico()); 
+
+        Turno nuevo = new Turno();
+        nuevo.setMedico(anterior.getMedico());
         nuevo.setFecha(fecha);
-        nuevo.setHoraInicio(inicio); 
-        nuevo.setHoraFin(fin); 
+        nuevo.setHoraInicio(inicio);
+        nuevo.setHoraFin(fin);
         nuevo.setDuracionMinutos((int) minutos);
-        nuevo.setConsultorio(ubicacion); 
+        nuevo.setConsultorio(ubicacion);
         nuevo.setEstado("DISPONIBLE");
         nuevo.setActivo(true);
         turnos.saveAndFlush(nuevo);
-        
+
         notificar(anterior, "Disponibilidad modificada: " + anterior.getFecha() + " " + anterior.getHoraInicio()
                 + " → " + fecha + " de " + inicio + " a " + fin + ", " + ubicacion + ".");
         return nuevo.getId();
@@ -247,12 +260,15 @@ public class DisponibilidadService {
         medicos.bloquear(referencia.getMedico().getId()).orElseThrow();
         entityManager.refresh(referencia, LockModeType.PESSIMISTIC_WRITE);
         var turno = referencia;
-        if (turno.getVersion() != version) throw new IllegalArgumentException("El turno cambió. Vuelve a abrir el formulario.");
-        if (!turno.isActivo()) throw new IllegalArgumentException("El turno ya está de baja.");
+        if (turno.getVersion() != version)
+            throw new IllegalArgumentException("El turno cambió. Vuelve a abrir el formulario.");
+        if (!turno.isActivo())
+            throw new IllegalArgumentException("El turno ya está de baja.");
         if (!turno.getFecha().atTime(turno.getHoraInicio()).isAfter(ahora()))
             throw new IllegalArgumentException("Solo puedes administrar turnos futuros.");
         if (!"DISPONIBLE".equals(turno.getEstado()) || citas.contarActivasEnTurno(id) > 0)
-            throw new IllegalArgumentException("El turno tiene una cita activa o en proceso de pago. Resuélvela antes de modificarlo.");
+            throw new IllegalArgumentException(
+                    "El turno tiene una cita activa o en proceso de pago. Resuélvela antes de modificarlo.");
         return turno;
     }
 
@@ -262,13 +278,14 @@ public class DisponibilidadService {
 
     private void notificar(Turno turno, String mensaje) {
         var aviso = new NotificacionMedico();
-        aviso.setMedico(turno.getMedico()); 
-        aviso.setCreada(ahora()); 
+        aviso.setMedico(turno.getMedico());
+        aviso.setCreada(ahora());
         aviso.setMensaje(mensaje);
         notificaciones.save(aviso);
     }
 
-    private int asignarInterno(Long medicoId, LocalDate fecha, LocalTime inicio, LocalTime fin, int minutos, String consultorio) {
+    private int asignarInterno(Long medicoId, LocalDate fecha, LocalTime inicio, LocalTime fin, int minutos,
+            String consultorio) {
         LocalDateTime ahora = ahora();
         if (medicoId == null || fecha == null || inicio == null || fin == null)
             throw new IllegalArgumentException("Completa el médico, fecha y horario.");
@@ -285,16 +302,17 @@ public class DisponibilidadService {
                 .orElseThrow(() -> new IllegalArgumentException("El médico no existe."));
         if (!usuarios.existsByMedicoIdAndActivoTrue(medicoId))
             throw new IllegalArgumentException("Crea primero la cuenta de acceso de este médico.");
-        if (turnos.existsByMedicoIdAndActivoTrueAndFechaAndHoraInicioLessThanAndHoraFinGreaterThan(medicoId, fecha, fin, inicio))
+        if (turnos.existsByMedicoIdAndActivoTrueAndFechaAndHoraInicioLessThanAndHoraFinGreaterThan(medicoId, fecha, fin,
+                inicio))
             throw new IllegalArgumentException("El médico ya tiene turnos que se superponen con ese horario.");
-        
+
         // ==============================================================
         // VALIDACIÓN: Exclusión de consultorio frente a otros médicos
         // ==============================================================
         if (turnos.existeConflictoConsultorio(consultorio, fecha, inicio, fin, medicoId)) {
             throw new IllegalArgumentException("El consultorio ya está ocupado por otro médico en ese horario.");
         }
-        
+
         int cantidad = (int) (duracion / minutos);
         for (int i = 0; i < cantidad; i++) {
             Turno turno = new Turno();
@@ -308,7 +326,7 @@ public class DisponibilidadService {
             turno.setActivo(true);
             turnos.save(turno);
         }
-        
+
         NotificacionMedico aviso = new NotificacionMedico();
         aviso.setMedico(medico);
         aviso.setCreada(ahora);
